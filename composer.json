@@ -3,7 +3,7 @@
   "description": "WelineFramework eav module",
   "type": "weline-module",
   "require": {
-    "php": "^8.0"
+    "php": "^8.1"
   },
   "authors": [
     {
