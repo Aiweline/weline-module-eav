@@ -360,9 +360,9 @@ abstract class EavModel extends Model implements EavInterface
      */
     public function eav_AttributeModel(): \Weline\Eav\Model\EavAttribute
     {
-        /**@var Model\EavAttribute\Group $group */
-        $group = ObjectManager::getInstance(EavAttribute\Group::class);
-        $group->where(EavAttribute\Group::fields_entity_id, $this->eav_Entity()->getId());
-        return $group;
+        /**@var \Weline\Eav\Model\EavAttribute $attribute */
+        $attribute = ObjectManager::getInstance(\Weline\Eav\Model\EavAttribute::class);
+        $attribute->where(\Weline\Eav\Model\EavAttribute::fields_entity_id, $this->eav_Entity()->getId());
+        return $attribute;
     }
 }
