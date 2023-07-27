@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace Weline\Eav\Controller\Backend;
 
 use Weline\Eav\Model\EavEntity;
+use Weline\Framework\Http\Cookie;
 
 class Entity extends \Weline\Framework\App\Controller\BackendController
 {
@@ -25,7 +26,13 @@ class Entity extends \Weline\Framework\App\Controller\BackendController
         EavEntity $eavEntity
     )
     {
-        $this->eavEntity = $eavEntity->addLocalDescription();
+        $this->eavEntity = $eavEntity;
+        
+    }
+
+    function __init()
+    {
+        $this->eavEntity->addLocalDescription();
     }
 
     function index()

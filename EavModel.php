@@ -325,7 +325,7 @@ abstract class EavModel extends Model implements EavInterface
      * 参数区：
      * @return  \Weline\Eav\Model\EavAttribute\Set
      */
-    public function getEntityEavAttributeSetModel(): EavAttribute\Set
+    public function getEntityEavAttrbiuteSetModel(): EavAttribute\Set
     {
         /**@var Model\EavAttribute\Set $set */
         $set = ObjectManager::getInstance(EavAttribute\Set::class);
@@ -342,7 +342,7 @@ abstract class EavModel extends Model implements EavInterface
      * 参数区：
      * @return  \Weline\Eav\Model\EavAttribute\Group
      */
-    public function getEntityEavAttributeGroupModel(): EavAttribute\Group
+    public function getEntityEavAttrbiuteGroupModel(): EavAttribute\Group
     {
         /**@var Model\EavAttribute\Group $group */
         $group = ObjectManager::getInstance(EavAttribute\Group::class);
