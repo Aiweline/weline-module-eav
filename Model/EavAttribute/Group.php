@@ -154,7 +154,7 @@ class Group extends \Weline\Framework\Database\Model
 
     function addLocalDescription()
     {
-        $lang = Cookie::getLang();
+        $lang    = Cookie::getLang();
         $idField = $this::fields_ID;
         $this->joinModel(
             \Weline\Eav\Model\EavAttribute\Group\LocalDescription::class,
@@ -163,5 +163,21 @@ class Group extends \Weline\Framework\Database\Model
             'left'
         );
         return $this;
+    }
+
+    /**
+     * @DESC          # 获取关联属性组的属性模型
+     *
+     * @AUTH    秋枫雁飞
+     * @EMAIL aiweline@qq.com
+     * @DateTime: 2023/7/27 22:22
+     * 参数区：
+     */
+    public function getAttributeModel():EavAttribute
+    {
+        /**@var EavAttribute $attrbiute */
+        $attrbiute = ObjectManager::getInstance(EavAttribute::class);
+        $attrbiute->where(EavAttribute::fields_group_id, $this->getId());
+        return $attrbiute;
     }
 }

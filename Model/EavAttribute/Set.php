@@ -106,12 +106,13 @@ class Set extends \Weline\Framework\Database\Model
         }
         return false;
     }
+
     function hasGroups(): bool
     {
         /**@var Group $group */
         $group = ObjectManager::getInstance(Group::class);
-        $group            = $group->reset()->where(EavAttribute::fields_set_id, $this->getId())
-                                         ->find()->fetch();
+        $group = $group->reset()->where(EavAttribute::fields_set_id, $this->getId())
+                       ->find()->fetch();
         if ($group->getId()) {
             return true;
         }
@@ -137,7 +138,7 @@ class Set extends \Weline\Framework\Database\Model
 
     function addLocalDescription()
     {
-        $lang = Cookie::getLang();
+        $lang    = Cookie::getLang();
         $idField = $this::fields_ID;
         $this->joinModel(
             \Weline\Eav\Model\EavAttribute\Set\LocalDescription::class,
@@ -146,5 +147,22 @@ class Set extends \Weline\Framework\Database\Model
             'left'
         );
         return $this;
+    }
+
+    /**
+     * @DESC          # 获取关联属性集的属性模型
+     *
+     * @AUTH    秋枫雁飞
+     * @EMAIL aiweline@qq.com
+     * @DateTime: 2023/7/27 22:21
+     * 参数区：
+     * @return \Weline\Eav\Model\EavAttribute
+     */
+    public function getAttrbiuteModel():EavAttribute
+    {
+        /**@var EavAttribute $attrbiute */
+        $attrbiute = ObjectManager::getInstance(EavAttribute::class);
+        $attrbiute->where(EavAttribute::fields_set_id, $this->getId());
+        return $attrbiute;
     }
 }

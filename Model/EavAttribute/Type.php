@@ -12,7 +12,9 @@ declare(strict_types=1);
 
 namespace Weline\Eav\Model\EavAttribute;
 
+use Weline\Eav\Model\EavAttribute;
 use Weline\Framework\Database\Api\Db\Ddl\TableInterface;
+use Weline\Framework\Manager\ObjectManager;
 use Weline\Framework\Setup\Data\Context;
 use Weline\Framework\Setup\Db\ModelSetup;
 
@@ -146,5 +148,21 @@ class Type extends \Weline\Framework\Database\Model
     function setFieldLength(int $field_length): static
     {
         return $this->setData(self::fields_field_length, $field_length);
+    }
+
+    /**
+     * @DESC          # 获取关联属性类型的属性模型
+     *
+     * @AUTH    秋枫雁飞
+     * @EMAIL aiweline@qq.com
+     * @DateTime: 2023/7/27 22:22
+     * 参数区：
+     */
+    public function getAttributeModel():EavAttribute
+    {
+        /**@var EavAttribute $attrbiute */
+        $attrbiute = ObjectManager::getInstance(EavAttribute::class);
+        $attrbiute->where(EavAttribute::fields_type_id, $this->getId());
+        return $attrbiute;
     }
 }
