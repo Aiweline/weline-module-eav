@@ -179,7 +179,7 @@ abstract class EavModel extends Model implements EavInterface
     {
         if ($this->attribute->clear()->where([
                                                  $this->attribute::fields_entity_id => $this->getEntityCode(),
-                                                 $this->attribute::fields_code        => $code,
+                                                 $this->attribute::fields_code      => $code,
                                                  $this->attribute::fields_group_id  => $group_code,
                                                  $this->attribute::fields_set_id    => $set_code,
                                              ])
@@ -193,11 +193,11 @@ abstract class EavModel extends Model implements EavInterface
             $this->attribute->current_setEntity($this)->clear()->setData(
                 [
                     $this->attribute::fields_code            => $code,
-                    $this->attribute::fields_group_id      => $group_code,
-                    $this->attribute::fields_set_id        => $set_code,
+                    $this->attribute::fields_group_id        => $group_code,
+                    $this->attribute::fields_set_id          => $set_code,
                     $this->attribute::fields_name            => $name,
                     $this->attribute::fields_type            => $type,
-                    $this->attribute::fields_entity_id     => $this->getEntityId(),
+                    $this->attribute::fields_entity_id       => $this->getEntityId(),
                     $this->attribute::fields_multiple_valued => intval($multi_value),
                     $this->attribute::fields_has_option      => intval($has_option),
                     $this->attribute::fields_is_system       => intval($is_system),
@@ -314,5 +314,39 @@ abstract class EavModel extends Model implements EavInterface
         $entity = $this->entity->load($this->entity::fields_code, $this->getEntityCode());
         $this->eavCache->set($this->getEntityCode(), $entity);
         return $entity;
+    }
+
+    /**
+     * @DESC          # 获取实体eav属性集模型
+     *
+     * @AUTH    秋枫雁飞
+     * @EMAIL aiweline@qq.com
+     * @DateTime: 2023/7/25 22:55
+     * 参数区：
+     * @return  \Weline\Eav\Model\EavAttribute\Set
+     */
+    public function getEntityEavAttributeSetModel(): EavAttribute\Set
+    {
+        /**@var Model\EavAttribute\Set $set */
+        $set = ObjectManager::getInstance(EavAttribute\Set::class);
+        $set->where(EavAttribute\Set::fields_entity_id, $this->eav_getEntity()->getId());
+        return $set;
+    }
+
+    /**
+     * @DESC          # 获取实体eav属性组模型
+     *
+     * @AUTH    秋枫雁飞
+     * @EMAIL aiweline@qq.com
+     * @DateTime: 2023/7/25 22:55
+     * 参数区：
+     * @return  \Weline\Eav\Model\EavAttribute\Group
+     */
+    public function getEntityEavAttributeGroupModel(): EavAttribute\Group
+    {
+        /**@var Model\EavAttribute\Group $group */
+        $group = ObjectManager::getInstance(EavAttribute\Group::class);
+        $group->where(EavAttribute\Group::fields_entity_id, $this->eav_getEntity()->getId());
+        return $group;
     }
 }
