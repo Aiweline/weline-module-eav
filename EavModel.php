@@ -87,7 +87,7 @@ abstract class EavModel extends Model implements EavInterface
 
     public function getEntityId(): int
     {
-        return $this->eav_getEntity()->getId();
+        return $this->eav_Entity()->getId();
     }
 
     public function getEntityFieldIdType(): string
@@ -309,7 +309,7 @@ abstract class EavModel extends Model implements EavInterface
      * 参数区：
      * @return \Weline\Eav\Model\EavEntity
      */
-    public function eav_getEntity(): \Weline\Eav\Model\EavEntity
+    public function eav_Entity(): \Weline\Eav\Model\EavEntity
     {
         $entity = $this->entity->load($this->entity::fields_code, $this->getEntityCode());
         $this->eavCache->set($this->getEntityCode(), $entity);
@@ -325,11 +325,11 @@ abstract class EavModel extends Model implements EavInterface
      * 参数区：
      * @return  \Weline\Eav\Model\EavAttribute\Set
      */
-    public function getEntityEavAttributeSetModel(): EavAttribute\Set
+    public function eav_AttributeSetModel(): EavAttribute\Set
     {
         /**@var Model\EavAttribute\Set $set */
         $set = ObjectManager::getInstance(EavAttribute\Set::class);
-        $set->where(EavAttribute\Set::fields_entity_id, $this->eav_getEntity()->getId());
+        $set->where(EavAttribute\Set::fields_entity_id, $this->eav_Entity()->getId());
         return $set;
     }
 
@@ -342,11 +342,27 @@ abstract class EavModel extends Model implements EavInterface
      * 参数区：
      * @return  \Weline\Eav\Model\EavAttribute\Group
      */
-    public function getEntityEavAttributeGroupModel(): EavAttribute\Group
+    public function eav_AttributeGroupModel(): EavAttribute\Group
     {
         /**@var Model\EavAttribute\Group $group */
         $group = ObjectManager::getInstance(EavAttribute\Group::class);
-        $group->where(EavAttribute\Group::fields_entity_id, $this->eav_getEntity()->getId());
+        $group->where(EavAttribute\Group::fields_entity_id, $this->eav_Entity()->getId());
+        return $group;
+    }
+    /**
+     * @DESC          # 获取实体eav属性模型
+     *
+     * @AUTH    秋枫雁飞
+     * @EMAIL aiweline@qq.com
+     * @DateTime: 2023/7/25 22:55
+     * 参数区：
+     * @return  \Weline\Eav\Model\EavAttribute
+     */
+    public function eav_AttributeModel(): \Weline\Eav\Model\EavAttribute
+    {
+        /**@var Model\EavAttribute\Group $group */
+        $group = ObjectManager::getInstance(EavAttribute\Group::class);
+        $group->where(EavAttribute\Group::fields_entity_id, $this->eav_Entity()->getId());
         return $group;
     }
 }
