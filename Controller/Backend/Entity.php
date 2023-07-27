@@ -27,11 +27,11 @@ class Entity extends \Weline\Framework\App\Controller\BackendController
     )
     {
         $this->eavEntity = $eavEntity;
-        
     }
 
     function __init()
     {
+        parent::__init();
         $this->eavEntity->addLocalDescription();
     }
 
