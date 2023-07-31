@@ -165,4 +165,21 @@ class Set extends \Weline\Framework\Database\Model
         $attrbiute->where(EavAttribute::fields_set_id, $this->getId());
         return $attrbiute;
     }
+
+    /**
+     * @DESC          # 获取关联属性集的属性模型
+     *
+     * @AUTH    秋枫雁飞
+     * @EMAIL aiweline@qq.com
+     * @DateTime: 2023/7/27 22:21
+     * 参数区：
+     * @return \Weline\Eav\Model\EavAttribute\Group
+     */
+    public function getAttrbiuteSetGroupModel():Group
+    {
+        /**@var Group $group */
+        $group = ObjectManager::getInstance(Group::class);
+        $group->where(Group::fields_set_id, $this->getId());
+        return $group;
+    }
 }
