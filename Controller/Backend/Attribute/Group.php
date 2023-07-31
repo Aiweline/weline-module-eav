@@ -78,6 +78,7 @@ class Group extends \Weline\Framework\App\Controller\BackendController
 
     function add()
     {
+        $this->assign('title','新增分组-属性组管理');
         if ($this->request->isPost()) {
             try {
                 $this->validatePost();
@@ -99,6 +100,7 @@ class Group extends \Weline\Framework\App\Controller\BackendController
 
     function edit()
     {
+        $this->assign('title','编辑分组-属性组管理');
         if ($this->request->isPost()) {
             try {
                 $this->validatePost();
@@ -118,7 +120,11 @@ class Group extends \Weline\Framework\App\Controller\BackendController
             }
         }
         if($this->request->getGet('group_id')){
-            $this->assign('group',$this->group->load($this->request->getGet('group_id')));
+            $group = $this->group->load($this->request->getGet('group_id'));
+            $this->assign('group',$group);
+            $this->assign('group_set',ObjectManager::getInstance(\Weline\Eav\Model\EavAttribute\Set::class)->load($group->getData($group::fields_set_id)));
+            $this->assign('group_entity',ObjectManager::getInstance(\Weline\Eav\Model\EavEntity::class)->load($group->getData
+            ($group::fields_entity_id)));
         }
         $this->init_form();
         return $this->fetch('form');

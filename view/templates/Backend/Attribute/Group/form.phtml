@@ -13,7 +13,6 @@ $themeConfig = \Weline\Framework\Manager\ObjectManager::getInstance(\Weline\Back
 <html lang='en' <?= ('rtl' === $themeConfig->getThemeModel()) ? " dir=\"rtl\"" : '' ?>>
 <head>
     @template(Weline_Admin::common/head.phtml)
-    <title><?= __('Weline Admin 管理面板') ?></title>
 </head>
 
 <body <?= $themeConfig->getLayouts() ?? ''; ?>>
@@ -92,7 +91,7 @@ $themeConfig = \Weline\Framework\Manager\ObjectManager::getInstance(\Weline\Back
                                                     id='validationEntity'
                                                     required=''>
                                                 <foreach name='entities'>
-                                                    <option value='{{v.entity_id}}' @if{group.entity_id=== v.entity_id=> 'selected'}>{{v.name}}</option>
+                                                    <option value='{{v.entity_id}}' @if{group.entity_id== v.entity_id=> 'selected'}>{{v.name}}</option>
                                                 </foreach>
                                             </select>
                                             <div class='valid-feedback'>
@@ -108,6 +107,9 @@ $themeConfig = \Weline\Framework\Manager\ObjectManager::getInstance(\Weline\Back
                                             <select type='text' class='form-control' name='set_id' data-parsley-minlength='3'
                                                     id='validationSet'
                                                     required='required' data-selected='{{group.set_id}}'>
+                                                <if condition="group_set">
+                                                    <option value="{{group_set.set_id}}" selected>{{group_set.name}}</option>
+                                                </if>
                                             </select>
                                             <div class='valid-feedback'>
                                                 <lang>填写正确！</lang>
@@ -147,10 +149,12 @@ $themeConfig = \Weline\Framework\Manager\ObjectManager::getInstance(\Weline\Back
     // 初始化
     let initSelected = validationEntity.find(':selected').val()
     let validationSet = $('#validationSet')
-    renderAttributeSet(initSelected)
+    if(!validationSet.find(':selected').val()){
+        renderAttributeSet(initSelected)
+    }
 
     function renderAttributeSet(entity_id) {
-        $.get("@backend-url('*/backend/attribute/set/apiSearch')?entity_id=" + entity_id).then((res) => {
+        $.get("@backend-url('*/backend/attribute/set/api-search')?entity_id=" + entity_id).then((res) => {
             let items = res['items']
             validationSet.empty()
             for (const itemsKey in items) {
