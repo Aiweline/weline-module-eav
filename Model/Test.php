@@ -49,7 +49,7 @@ class Test extends EavModel
      */
     public function install(ModelSetup $setup, Context $context): void
     {
-        $setup->dropTable();
+//        $setup->dropTable();
         if (!$setup->tableExist()) {
             $setup->createTable('测试Eav表')
                   ->addColumn(self::fields_ID, TableInterface::column_type_INTEGER, 0, 'primary key auto_increment', '测试ID')
