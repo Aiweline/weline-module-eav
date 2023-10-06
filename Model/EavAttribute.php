@@ -174,7 +174,7 @@ class EavAttribute extends \Weline\Framework\Database\Model
 
     function getEntityId(): int
     {
-        return $this->getData(self::fields_entity_id) ?: 0;
+        return (int)$this->getData(self::fields_entity_id);
     }
 
     function getEntityModel(): EavModel

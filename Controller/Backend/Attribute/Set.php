@@ -12,7 +12,9 @@ declare(strict_types=1);
 
 namespace Weline\Eav\Controller\Backend\Attribute;
 
+use Gvanda\Store\Model\Store;
 use Weline\Eav\Model\EavEntity;
+use Weline\Framework\Http\Cookie;
 use Weline\Framework\Manager\ObjectManager;
 
 class Set extends \Weline\Framework\App\Controller\BackendController
@@ -23,13 +25,16 @@ class Set extends \Weline\Framework\App\Controller\BackendController
         \Weline\Eav\Model\EavAttribute\Set $set
     )
     {
-        $this->set = $set->addLocalDescription();
+        $this->set = $set;
     }
-
     function index()
     {
+        $this->set->addLocalDescription()
+        ->joinModel(EavEntity::class, 'entity', 'main_table.entity_id=entity.entity_id', 'left', 'entity.name as entity_name')
+        ->joinModel(EavEntity\LocalDescription::class, 'entity_local', 'main_table.entity_id=entity_local.entity_id and entity_local.local_code=\''.Cookie::getLangLocal().'\'', 'left', 'entity_local.name as entity_local_name');
+    
         if ($search = $this->request->getGet('search')) {
-            $this->set->where('concat(entity,name)', "%$search%", 'like');
+            $this->set->where('concat(local.name,main_table.name,entity.name,entity.code)', "%$search%", 'like');
         }
         $groups = $this->set->pagination()->select()->fetch()->getItems();
         $this->assign('sets', $groups);
@@ -181,7 +186,7 @@ class Set extends \Weline\Framework\App\Controller\BackendController
         // 实体
         /**@var \Weline\Eav\Model\EavEntity $eavEntityModel */
         $eavEntityModel = ObjectManager::getInstance(EavEntity::class);
-        $entities       = $eavEntityModel->select()->fetchOrigin();
+        $entities       = $eavEntityModel->reset()->select()->fetchOrigin();
         $this->assign('entities', $entities);
         // 链接
         $this->assign('action', $this->_url->getCurrentUrl());

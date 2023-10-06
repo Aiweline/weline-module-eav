@@ -15,6 +15,7 @@ namespace Weline\Eav\Controller\Backend\Attribute;
 use Weline\Eav\Model\EavEntity;
 use Weline\Framework\App\Exception;
 use Weline\Framework\Exception\Core;
+use Weline\Framework\Http\Cookie;
 use Weline\Framework\Manager\ObjectManager;
 
 class Group extends \Weline\Framework\App\Controller\BackendController
@@ -25,13 +26,16 @@ class Group extends \Weline\Framework\App\Controller\BackendController
         \Weline\Eav\Model\EavAttribute\Group $group
     )
     {
-        $this->group = $group->addLocalDescription();
+        $this->group = $group;
     }
 
     function index()
     {
+        $this->group->addLocalDescription()
+        ->joinModel(EavEntity::class, 'entity', 'main_table.entity_id=entity.entity_id', 'left', 'entity.name as entity_name')
+        ->joinModel(EavEntity\LocalDescription::class, 'entity_local', 'main_table.entity_id=entity_local.entity_id and entity_local.local_code=\''.Cookie::getLangLocal().'\'', 'left', 'entity_local.name as entity_local_name');
         if ($search = $this->request->getGet('search')) {
-            $this->group->where('concat(entity,name)', "%$search%", 'like');
+            $this->group->where('concat(local.name,main_table.name,entity.name,entity.code)', "%$search%", 'like');
         }
         $groups = $this->group->pagination()->select()->fetch()->getItems();
         $this->assign('groups', $groups);

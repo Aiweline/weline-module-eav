@@ -613,7 +613,7 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
         return group_id;
     }
 
-    function getAttributeCode() {
+    function getAttributeID() {
         let attribute_id = '{{attribute.attribute_id}}';
         if (attribute_id === '') {
             attribute_id = $('#progress-attribute-code').val()
@@ -774,7 +774,7 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
             })
             return false
         }
-        let attribute_id = getAttributeCode()
+        let attribute_id = getAttributeID()
         if (!attribute_id) {
             Swal.fire({
                 title: '@lang{请先创建属性再操作！}',
@@ -782,7 +782,6 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
                 icon: 'warning',
                 confirmButtonText: '@lang{好的}'
             }).then((result) => {
-                console.log(result)
                 if (result.isConfirmed) {
                     // 跳转属性创建步骤
                     $('#progress-wizard').find('a[href="#progress-attribute-details"]').tab('show')
@@ -1098,7 +1097,7 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
                                         </span>`)
             $.ajax({
                 url: '@backend-url("*/backend/attribute/option/search")?field=value&limit=1&search=' + search +
-                    '&entity_id=' + getEntityId() + '&attribute_id=' + getAttributeCode(),
+                    '&entity_id=' + getEntityId() + '&attribute_id=' + getAttributeID(),
                 success: function (res) {
                     if (res['msg']) {
                         Swal.fire(

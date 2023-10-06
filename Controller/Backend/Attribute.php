@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /*
@@ -14,16 +15,18 @@ namespace Weline\Eav\Controller\Backend;
 
 use Weline\Eav\Model\EavAttribute;
 use Weline\Eav\Model\EavAttribute\Group;
+use Weline\Eav\Model\EavAttribute\Type;
 use Weline\Eav\Model\EavEntity;
 use Weline\Eav\Model\EavAttributePreCreate;
+use Weline\Framework\Http\Cookie;
 use Weline\Framework\Manager\ObjectManager;
 
 class Attribute extends \Weline\Framework\App\Controller\BackendController
 {
-    const        eav_entity                     = 'eav_entity';
-    const        eav_entity_attribute_set       = 'eav_entity_attribute_set';
-    const        eav_entity_attribute_set_group = 'eav_entity_attribute_set_group';
-    const        eav_attribute                  = 'attribute';
+    public const        eav_entity                     = 'eav_entity';
+    public const        eav_entity_attribute_set       = 'eav_entity_attribute_set';
+    public const        eav_entity_attribute_set_group = 'eav_entity_attribute_set_group';
+    public const        eav_attribute                  = 'attribute';
 
     /**
      * @var \Weline\Eav\Model\EavAttribute
@@ -31,27 +34,39 @@ class Attribute extends \Weline\Framework\App\Controller\BackendController
     private EavAttribute $eavAttribute;
     private EavAttributePreCreate $preCreateAttribute;
 
-    function __construct(EavAttribute $eavAttribute, EavAttributePreCreate $preCreateAttribute)
+    public function __construct(EavAttribute $eavAttribute, EavAttributePreCreate $preCreateAttribute)
     {
-        $this->eavAttribute       = $eavAttribute->addLocalDescription();
+        $this->eavAttribute       = $eavAttribute;
         $this->preCreateAttribute = $preCreateAttribute;
     }
 
-    function index()
+    public function index()
     {
+        $this->eavAttribute->addLocalDescription()
+        ->joinModel(EavEntity::class, 'entity', 'main_table.entity_id=entity.entity_id', 'left', 'entity.name as entity_name')
+        ->joinModel(EavEntity\LocalDescription::class, 'entity_local', 'main_table.entity_id=entity_local.entity_id and entity_local.local_code=\''.Cookie::getLangLocal().'\'', 'left', 'entity_local.name as entity_local_name');
+        $this->eavAttribute->joinModel(Type::class, 'type');
         if ($search = $this->request->getGet('search')) {
-            $this->eavAttribute->where('concat(code,entity,name,type)', "%$search%", 'like');
+            $this->eavAttribute->where('concat(main_table.name,main_table.code,type.name,type.code,local.name,entity.name,entity.code,entity_local.name)', "%$search%", 'like');
         }
         if ($entity = $this->request->getGet('entity')) {
             $this->eavAttribute->where('entity_id', $entity);
         }
+        // p($this->eavAttribute->select()->getLastSql());
         $attributes = $this->eavAttribute->order('main_table.update_time')->pagination()->select()->fetchOrigin();
         $this->assign('attributes', $attributes);
         $this->assign('pagination', $this->eavAttribute->getPagination());
         return $this->fetch();
     }
 
-    function getSearch(): string
+    public function getAttributeIdByCode(): string
+    {
+        $code   = (string)$this->request->getPost('code');
+        $this->preCreateAttribute->load($this->preCreateAttribute::fields_code, $code);
+        return $this->fetchJson($this->preCreateAttribute->getId());
+    }
+
+    public function getSearch(): string
     {
         $field     = $this->request->getGet('field');
         $limit     = $this->request->getGet('limit');
@@ -82,7 +97,7 @@ class Attribute extends \Weline\Framework\App\Controller\BackendController
             } else {
                 $this->eavAttribute->limit(100);
             }
-        } else if (empty($field) && $search) {
+        } elseif (empty($field) && $search) {
             $this->eavAttribute->where('concat(`attribute`,main_table.`name`,`entity`,`option`)', "%{$search}%", 'like');
             return $this->fetchJson($json);
         }
@@ -91,7 +106,7 @@ class Attribute extends \Weline\Framework\App\Controller\BackendController
         return $this->fetchJson($json);
     }
 
-    function add(int $attribute_id = 0)
+    public function add(int $attribute_id = 0)
     {
         if ($attribute_id) {
             $this->preCreateAttribute->where('attribute_id', $attribute_id)->find()->fetch();
@@ -132,7 +147,7 @@ class Attribute extends \Weline\Framework\App\Controller\BackendController
                 case 'progress-select-entity':
                     /**@var EavEntity $entityModel */
                     $entityModel = ObjectManager::getInstance(EavEntity::class);
-                    $entity      = $entityModel->where('entity_id', $this->request->getPost('entity_id'))->find()->fetch();
+                    $entity      = $entityModel->reset()->where('entity_id', $this->request->getPost('entity_id'))->find()->fetch();
                     if (!$entity->getId()) {
                         $msg = __('所选择实体已不存在！');
                         if ($this->request->getGet('isAjax')) {
@@ -271,7 +286,7 @@ class Attribute extends \Weline\Framework\App\Controller\BackendController
                                 unset($options[$key]);
                                 break;
                             }
-                        }else{
+                        } else {
                             if ($option['option_id'] == $option_id) {
                                 unset($options[$key]);
                                 $unfinished_attribute->addDeleteOptionIds((int)$option_id);
@@ -331,7 +346,7 @@ class Attribute extends \Weline\Framework\App\Controller\BackendController
                         unset($attribute_data['has_option']);
                     }
                     $attribute_data = array_merge($unfinished_attribute->getData(), $attribute_data);
-//                    dd($unfinished_attribute->getData());
+                    //                    dd($unfinished_attribute->getData());
                     $unfinished_attribute->setData($attribute_data);
                     // 检测是否已经存在
                     $attribute = clone $this->eavAttribute->where($this->eavAttribute::fields_code, $this->request->getPost('code'))
@@ -340,13 +355,14 @@ class Attribute extends \Weline\Framework\App\Controller\BackendController
                                                           ->where($this->eavAttribute::fields_group_id, $unfinished_attribute->getGroupId())
                                                           ->find()->fetch();
                     try {
-                        $this->eavAttribute->setModelFieldsData($attribute_data)->save(true);
+                        $result = $this->eavAttribute->setModelFieldsData($attribute_data)->save(true);
                         $msg = $attribute->getId() ? __('属性修改成功！') : __('属性创建成功！');
                         if ($this->request->getGet('isAjax')) {
                             $unfinished_attribute->save(true);
                             return $this->fetchJson(['code' => 1, 'msg' => $msg, 'v' => $unfinished_attribute->getQuery()->bound_values]);
                         }
                         $this->getMessageManager()->addSuccess($msg);
+                        $this->redirect('*/backend/attribute/edit', ['attribute_id'=>$result,'entity_id'=>$this->eavAttribute->getEntityId(),'isAjax'=>'true']);
                     } catch (\Exception $e) {
                         $msg = $attribute->getId() ? __('属性编辑错误！') : __('创建属性错误！');
                         if ($this->request->getGet('isAjax')) {
@@ -374,6 +390,7 @@ class Attribute extends \Weline\Framework\App\Controller\BackendController
                 case 'progress-submit':
                     $unfinished_attribute->setData($unfinished_attribute::fields_step, $progress);
                     $unfinished_attribute->setModelFieldsData($this->request->getPost())->save(true);
+                    // no break
                 default:
                     // 检验
                     if (!$unfinished_attribute->getEntityId()) {
@@ -443,13 +460,13 @@ class Attribute extends \Weline\Framework\App\Controller\BackendController
                         $this->redirect($this->_url->getCurrentUrl());
                     }
                     $attribute_data = array_merge($attribute_data, $unfinished_attribute->getData());
-                    $this->eavAttribute->reset()
+                    $attribute_id = $this->eavAttribute->reset()
                                        ->setModelFieldsData($attribute_data)
                                        ->unsetData($this->eavAttribute::fields_ID)
                                        ->save(true);
                     // 如果属性添加成功，并且有属性配置项，配置属性配置项
                     // 属性配置项
-                    if ($this->eavAttribute->getId() && isset($attribute_data['has_option']) && ($attribute_data['has_option'] === '1')) {
+                    if ($attribute_id and $this->eavAttribute->getId() && isset($attribute_data['has_option']) && ($attribute_data['has_option'] === '1')) {
                         $attribute_options = $unfinished_attribute->getOptions();
                         if (empty($attribute_options)) {
                             if ($this->request->getGet('isAjax')) {
@@ -466,24 +483,29 @@ class Attribute extends \Weline\Framework\App\Controller\BackendController
                                 EavAttribute\Option::fields_code         => $attribute_option['code'],
                                 EavAttribute\Option::fields_value        => $attribute_option['value'],
                                 EavAttribute\Option::fields_entity_id    => $attribute_data['entity_id'],
-                                EavAttribute\Option::fields_attribute_id => $attribute_data['attribute_id'],
+                                EavAttribute\Option::fields_attribute_id => $attribute_id,
                             ];
                         }
                         /**@var \Weline\Eav\Model\EavAttribute\Option $optionModel */
                         $optionModel = ObjectManager::getInstance(EavAttribute\Option::class);
                         $this->eavAttribute->beginTransaction();
                         try {
-                            $optionModel->insert($insert_attribute_options,
-                                                 [
+                            $optionModel->insert(
+                                $insert_attribute_options,
+                                [
                                                      EavAttribute\Option::fields_code,
                                                      EavAttribute\Option::fields_entity_id,
                                                      EavAttribute\Option::fields_attribute_id
-                                                 ])->fetch();
+                                                 ]
+                            )->fetch();
                             # 删除要删除的选择项
                             $deleteIds = $unfinished_attribute->getDeleteOptionIds();
                             if (!empty($deleteIds)) {
                                 $option = $this->eavAttribute->getOptionModel();
-                                $option->reset()->where('attribute_id', $this->eavAttribute->getId())->where('option_id in (\'' . implode('\',\'', $deleteIds) . '\')')->delete();
+                                $option->reset()
+                                ->where('attribute_id', $this->eavAttribute->getId())
+                                ->where('option_id in (\'' . implode('\',\'', $deleteIds) . '\')')
+                                ->delete();
                             }
                             $this->eavAttribute->commit();
                         } catch (\Exception $exception) {
@@ -492,7 +514,9 @@ class Attribute extends \Weline\Framework\App\Controller\BackendController
                                 return $this->fetchJson(['code' => 0, 'msg' => __('添加异常！属性可能已经存在！'), 'error' => $exception->getMessage()]);
                             }
                             $this->getMessageManager()->addWarning(__('添加异常！'));
-                            if (DEBUG || DEV) $this->getMessageManager()->addException($exception);
+                            if (DEBUG || DEV) {
+                                $this->getMessageManager()->addException($exception);
+                            }
                             $this->redirect('*/backend/attribute/add');
                         }
                     }
@@ -555,7 +579,7 @@ class Attribute extends \Weline\Framework\App\Controller\BackendController
 
         /**@var EavEntity $eavEntityModel */
         $eavEntityModel = ObjectManager::getInstance(EavEntity::class);
-        $entities       = $eavEntityModel->select()->fetchOrigin();
+        $entities       = $eavEntityModel->reset()->select()->fetchOrigin();
         $this->assign('entities', $entities);
 
         $entity_id = $unfinished_attribute->getEntityId();
@@ -586,7 +610,7 @@ class Attribute extends \Weline\Framework\App\Controller\BackendController
         return $this->fetch('form');
     }
 
-    function edit()
+    public function edit()
     {
         $attribute_id = (int)$this->request->getGet('attribute_id');
         return $this->add($attribute_id);
@@ -597,7 +621,7 @@ class Attribute extends \Weline\Framework\App\Controller\BackendController
 
     }
 
-    function getDelete()
+    public function getDelete()
     {
         if ($id = $this->request->getGet('id')) {
             $this->eavAttribute->load($id)->delete();
@@ -608,7 +632,7 @@ class Attribute extends \Weline\Framework\App\Controller\BackendController
         $this->redirect($this->_url->getBackendUrl('*/backend/attribute'));
     }
 
-    function postTranslate()
+    public function postTranslate()
     {
         $attribute_id = $this->request->getPost('attribute_id');
         $entity_id    = $this->request->getPost('entity_id');

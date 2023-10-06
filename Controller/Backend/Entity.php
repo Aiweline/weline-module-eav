@@ -38,7 +38,7 @@ class Entity extends \Weline\Framework\App\Controller\BackendController
     function index()
     {
         if ($search = $this->request->getGet('search')) {
-            $this->eavEntity->where('concat(code,name,class)', "%$search%", 'like');
+            $this->eavEntity->where('concat(main_table.code,main_table.name,main_table.class,local.name)', "%$search%", 'like');
         }
         $entities = $this->eavEntity->pagination()->select()->fetchOrigin();
         $this->assign('entities', $entities);

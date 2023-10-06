@@ -14,6 +14,7 @@ namespace Weline\Eav\Controller\Backend\Attribute;
 
 use Weline\Eav\Model\EavAttribute;
 use Weline\Framework\App\Controller\BackendController;
+use Weline\Framework\Http\Cookie;
 use Weline\Framework\Manager\ObjectManager;
 
 class Option extends BackendController
@@ -25,7 +26,7 @@ class Option extends BackendController
 
     function __construct(EavAttribute\Option $option)
     {
-        $this->option = $option->addLocalDescription();
+        $this->option = $option;
     }
 
     public function search()
