@@ -466,7 +466,7 @@ class Attribute extends \Weline\Framework\App\Controller\BackendController
                                        ->save(true);
                     // 如果属性添加成功，并且有属性配置项，配置属性配置项
                     // 属性配置项
-                    if ($attribute_id and $this->eavAttribute->getId() && isset($attribute_data['has_option']) && ($attribute_data['has_option'] === '1')) {
+                    if ($this->eavAttribute->getId() and $this->eavAttribute->getId() && isset($attribute_data['has_option']) && ($attribute_data['has_option'] === '1')) {
                         $attribute_options = $unfinished_attribute->getOptions();
                         if (empty($attribute_options)) {
                             if ($this->request->getGet('isAjax')) {
@@ -483,7 +483,7 @@ class Attribute extends \Weline\Framework\App\Controller\BackendController
                                 EavAttribute\Option::fields_code         => $attribute_option['code'],
                                 EavAttribute\Option::fields_value        => $attribute_option['value'],
                                 EavAttribute\Option::fields_entity_id    => $attribute_data['entity_id'],
-                                EavAttribute\Option::fields_attribute_id => $attribute_id,
+                                EavAttribute\Option::fields_attribute_id => $this->eavAttribute->getId(),
                             ];
                         }
                         /**@var \Weline\Eav\Model\EavAttribute\Option $optionModel */
@@ -505,7 +505,8 @@ class Attribute extends \Weline\Framework\App\Controller\BackendController
                                 $option->reset()
                                 ->where('attribute_id', $this->eavAttribute->getId())
                                 ->where('option_id in (\'' . implode('\',\'', $deleteIds) . '\')')
-                                ->delete();
+                                ->delete()
+                                ->fetch();
                             }
                             $this->eavAttribute->commit();
                         } catch (\Exception $exception) {
