@@ -57,6 +57,11 @@ class EavEntity extends Model
             $eavs = array_merge($eavs, $moduleFileReader->readClass(new Module($module), 'Model'));
         }
         foreach ($eavs as $eav) {
+            # 检测类是否可以实例化
+            $eavEntityReflectionInstance = ObjectManager::getReflectionInstance($eav);
+            if(!$eavEntityReflectionInstance->isInstantiable()){
+                continue;
+            }
             /**@var \Weline\Eav\EavInterface $eavEntity */
             $eavEntity = ObjectManager::getInstance($eav);
             if ($eavEntity instanceof EavInterface) {
