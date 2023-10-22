@@ -120,7 +120,7 @@ class Type extends \Weline\Framework\Database\Model
                         self::fields_code => 'input_int',
                         self::fields_field_type => TableInterface::column_type_INTEGER,
                         self::fields_frontend_attrs => 'type="number"',
-                        self::fields_field_length => 0,
+                        self::fields_field_length => 11,
                         self::fields_name => '数字输入',
                     ],
                     [
