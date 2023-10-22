@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /*
@@ -20,11 +21,13 @@ use Weline\Framework\Setup\Db\ModelSetup;
 
 class Type extends \Weline\Framework\Database\Model
 {
-    public const fields_ID           = 'type_id';
-    public const fields_type_id      = 'type_id';
-    public const fields_code         = 'code';
-    public const fields_name         = 'name';
-    public const fields_field_type   = 'field_type';
+    public const fields_ID = 'type_id';
+    public const fields_type_id = 'type_id';
+    public const fields_code = 'code';
+    public const fields_name = 'name';
+    public const fields_frontend_attrs = 'frontend_attrs';
+    public const fields_required = 'required';
+    public const fields_field_type = 'field_type';
     public const fields_field_length = 'field_length';
     public array $_unit_primary_keys = ['type_id'];
     public array $_index_sort_keys = ['type_id'];
@@ -50,102 +53,125 @@ class Type extends \Weline\Framework\Database\Model
      */
     public function install(ModelSetup $setup, Context $context): void
     {
-//        $setup->dropTable();
+//                $setup->dropTable();
         if (!$setup->tableExist()) {
             $setup->createTable('属性类型表')
-                  ->addColumn(
-                      self::fields_ID,
-                      TableInterface::column_type_INTEGER,
-                      0,
-                      'primary key auto_increment',
-                      '类型ID')
-                  ->addColumn(
-                      self::fields_code,
-                      TableInterface::column_type_VARCHAR,
-                      255,
-                      'unique not null',
-                      '类型代码')
-                  ->addColumn(
-                      self::fields_name,
-                      TableInterface::column_type_VARCHAR,
-                      255,
-                      'not null',
-                      '类型名')
-                  ->addColumn(
-                      self::fields_field_type,
-                      TableInterface::column_type_VARCHAR,
-                      60,
-                      'not null',
-                      '数据库字段类型')
-                  ->addColumn(
-                      self::fields_field_length,
-                      TableInterface::column_type_SMALLINT,
-                      5,
-                      'not null',
-                      '数据库字段长度')
-                  ->addIndex(TableInterface::index_type_KEY, 'idx_code', self::fields_code)
-                  ->create();
-            $this->insert([
-                              [
-                                  self::fields_code         => 'input_string_60',
-                                  self::fields_field_type   => TableInterface::column_type_VARCHAR,
-                                  self::fields_field_length => '60',
-                                  self::fields_name         => '字符串输入（60字节）',
-                              ],
-                              [
-                                  self::fields_code         => 'input_int',
-                                  self::fields_field_type   => TableInterface::column_type_INTEGER,
-                                  self::fields_field_length => 0,
-                                  self::fields_name         => '数字输入',
-                              ],
-                              [
-                                  self::fields_code         => 'input_bool',
-                                  self::fields_field_type   => TableInterface::column_type_SMALLINT,
-                                  self::fields_field_length => 1,
-                                  self::fields_name         => '布尔值输入',
-                              ],
-                          ],
-                          self::fields_code
+                ->addColumn(
+                    self::fields_ID,
+                    TableInterface::column_type_INTEGER,
+                    0,
+                    'primary key auto_increment',
+                    '类型ID'
+                )
+                ->addColumn(
+                    self::fields_code,
+                    TableInterface::column_type_VARCHAR,
+                    255,
+                    'unique not null',
+                    '类型代码'
+                )
+                ->addColumn(
+                    self::fields_name,
+                    TableInterface::column_type_VARCHAR,
+                    255,
+                    'not null',
+                    '类型名'
+                )
+                ->addColumn(
+                    self::fields_frontend_attrs,
+                    TableInterface::column_type_VARCHAR,
+                    255,
+                    'not null',
+                    '前端类型'
+                )
+                ->addColumn(
+                    self::fields_required,
+                    TableInterface::column_type_SMALLINT,
+                    1,
+                    'not null default 0',
+                    '是否必须项'
+                )
+                ->addColumn(
+                    self::fields_field_type,
+                    TableInterface::column_type_VARCHAR,
+                    60,
+                    'not null',
+                    '数据库字段类型'
+                )
+                ->addColumn(
+                    self::fields_field_length,
+                    TableInterface::column_type_SMALLINT,
+                    5,
+                    'not null',
+                    '数据库字段长度'
+                )
+                ->addIndex(TableInterface::index_type_KEY, 'idx_code', self::fields_code)
+                ->create();
+            $this->insert(
+                [
+                    [
+                        self::fields_code => 'input_string_60',
+                        self::fields_field_type => TableInterface::column_type_VARCHAR,
+                        self::fields_frontend_attrs => 'type="text" maxlength="60" data-parsley-minlength="3" required',
+                        self::fields_field_length => '60',
+                        self::fields_name => '字符串输入（60字节）',
+                    ],
+                    [
+                        self::fields_code => 'input_int',
+                        self::fields_field_type => TableInterface::column_type_INTEGER,
+                        self::fields_frontend_attrs => 'type="number"',
+                        self::fields_field_length => 0,
+                        self::fields_name => '数字输入',
+                    ],
+                    [
+                        self::fields_code => 'input_bool',
+                        self::fields_field_type => TableInterface::column_type_SMALLINT,
+                        self::fields_frontend_attrs => 'type="number"',
+                        self::fields_field_length => 1,
+                        self::fields_name => '布尔值输入',
+                    ],
+                ],
+                self::fields_code
             )->fetch();
         }
     }
 
-    function getName(): string
+    public function getName(): string
     {
         return $this->getData(self::fields_name) ?: '';
     }
 
-    function setName(string $name): static
+    public function setName(string $name): static
     {
         return $this->setData(self::fields_name, $name);
     }
 
-    function getCode(): string
+    public function getCode(): string
     {
         return $this->getData(self::fields_code) ?: '';
     }
 
-    function setCode(string $code): static
+    public function setCode(string $code): static
     {
         return $this->setData(self::fields_code, $code);
     }
 
-    function getFieldType(): string
+    public function getFieldType(): string
     {
         return $this->getData(self::fields_field_type) ?: '';
     }
 
-    function setFieldType(string $field_type): static
+    public function setFieldType(string $field_type): static
     {
         return $this->setData(self::fields_field_type, $field_type);
     }
 
-    function getFieldLength(): int
+    public function getFieldLength(): int
     {
         return intval($this->getData(self::fields_field_length));
     }
 
-    function setFieldLength(int $field_length): static
+    public function setFieldLength(int $field_length): static
     {
         return $this->setData(self::fields_field_length, $field_length);
     }
@@ -158,7 +184,7 @@ class Type extends \Weline\Framework\Database\Model
      * @DateTime: 2023/7/27 22:22
      * 参数区：
      */
-    public function getAttributeModel():EavAttribute
+    public function getAttributeModel(): EavAttribute
     {
         /**@var EavAttribute $attrbiute */
         $attrbiute = ObjectManager::getInstance(EavAttribute::class);
