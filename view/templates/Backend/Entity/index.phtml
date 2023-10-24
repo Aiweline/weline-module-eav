@@ -126,7 +126,7 @@ $themeConfig = \Weline\Framework\Manager\ObjectManager::getInstance(\Weline\Back
                                                     <td>{{entity.entity_id}}</td>
                                                     <td>{{entity.code}}</td>
                                                     <td class='co-name'>
-                                                        <local model='Weline\Eav\Model\EavEntity\LocalDescription'
+                                                        <local name="entity-name" model='Weline\Eav\Model\EavEntity\LocalDescription'
                                                                field='name' id='entity.entity_id'>
                                                             {{entity.local_name|entity.name}}
                                                         </local>
