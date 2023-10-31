@@ -53,7 +53,7 @@ class Type extends \Weline\Framework\Database\Model
      */
     public function install(ModelSetup $setup, Context $context): void
     {
-//                $setup->dropTable();
+//        $setup->dropTable();
         if (!$setup->tableExist()) {
             $setup->createTable('属性类型表')
                 ->addColumn(
@@ -129,6 +129,20 @@ class Type extends \Weline\Framework\Database\Model
                         self::fields_frontend_attrs => 'type="number"',
                         self::fields_field_length => 1,
                         self::fields_name => '布尔值输入',
+                    ],
+                    [
+                        self::fields_code => 'input_string_255',
+                        self::fields_field_type => TableInterface::column_type_SMALLINT,
+                        self::fields_frontend_attrs => 'type="text" maxlength="255" data-parsley-minlength="3" required',
+                        self::fields_field_length => 1,
+                        self::fields_name => '字符串输入（255字节）',
+                    ],
+                    [
+                        self::fields_code => 'input_string',
+                        self::fields_field_type => TableInterface::column_type_SMALLINT,
+                        self::fields_frontend_attrs => 'type="text" data-parsley-minlength="3" required',
+                        self::fields_field_length => 1,
+                        self::fields_name => '字符串输入',
                     ],
                 ],
                 self::fields_code
