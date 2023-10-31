@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace Weline\Eav\Controller\Backend\Attribute;
 
+use Weline\Eav\Model\EavAttribute\Set\LocalDescription;
 use Weline\Eav\Model\EavEntity;
 use Weline\Framework\App\Exception;
 use Weline\Framework\Exception\Core;
@@ -32,8 +33,10 @@ class Group extends \Weline\Framework\App\Controller\BackendController
     function index()
     {
         $this->group->addLocalDescription()
-        ->joinModel(EavEntity::class, 'entity', 'main_table.entity_id=entity.entity_id', 'left', 'entity.name as entity_name')
-        ->joinModel(EavEntity\LocalDescription::class, 'entity_local', 'main_table.entity_id=entity_local.entity_id and entity_local.local_code=\''.Cookie::getLangLocal().'\'', 'left', 'entity_local.name as entity_local_name');
+            ->joinModel(EavEntity::class, 'entity', 'main_table.entity_id=entity.entity_id', 'left', 'entity.name as entity_name')
+            ->joinModel(\Weline\Eav\Model\EavAttribute\Set::class, 'set', 'main_table.set_id=set.set_id', 'left', 'set.name as set_name')
+            ->joinModel(EavEntity\LocalDescription::class, 'entity_local', 'main_table.entity_id=entity_local.entity_id and entity_local.local_code=\''.Cookie::getLangLocal().'\'', 'left', 'entity_local.name as entity_local_name')
+            ->joinModel(LocalDescription::class, 'set_local', 'main_table.set_id=set_local.set_id and set_local.local_code=\''.Cookie::getLangLocal().'\'', 'left', 'set_local.name as set_local_name');
         if ($search = $this->request->getGet('search')) {
             $this->group->where('concat(local.name,main_table.name,entity.name,entity.code)', "%$search%", 'like');
         }
@@ -52,7 +55,7 @@ class Group extends \Weline\Framework\App\Controller\BackendController
         $set_id    = $this->request->getGet('set_id');
         $search      = $this->request->getGet('search');
         $json        = ['items'  => [], 'entity_id' => $entity_id, 'set_id' => $set_id, 'limit' => $limit,
-                        'search' => $search];
+            'search' => $search];
         if (empty($entity_id)) {
             $json['msg'] = __('请先选择实体后操作！');
             return $this->fetchJson($json);
@@ -62,7 +65,7 @@ class Group extends \Weline\Framework\App\Controller\BackendController
             return $this->fetchJson($json);
         }
         $this->group->where('entity_id', $entity_id)
-                    ->where('set_id', $set_id);
+            ->where('set_id', $set_id);
         if ($field && $search) {
             $this->group->where($field, $search);
             if ($limit) {
@@ -75,7 +78,7 @@ class Group extends \Weline\Framework\App\Controller\BackendController
             return $this->fetchJson($json);
         }
         $attributes    = $this->group->select()
-                                     ->fetchOrigin();
+            ->fetchOrigin();
         $json['items'] = $attributes;
         return $this->fetchJson($json);
     }
@@ -109,8 +112,8 @@ class Group extends \Weline\Framework\App\Controller\BackendController
             try {
                 $this->validatePost();
                 $this->group->setData($this->request->getPost())
-                            ->forceCheck(true, [$this->group::fields_code, $this->group::fields_entity_id, $this->group::fields_set_id])
-                            ->save();
+                    ->forceCheck(true, [$this->group::fields_code, $this->group::fields_entity_id, $this->group::fields_set_id])
+                    ->save();
                 $this->getMessageManager()->addSuccess(__('修改成功！'));
                 $this->session->delete('eav_group');
                 $this->redirect($this->_url->getBackendUrl('*/backend/attribute/group/edit', [
@@ -170,10 +173,10 @@ class Group extends \Weline\Framework\App\Controller\BackendController
         $set_id    = $this->request->getGet('set_id');
         if ($code && $entity_id && $set_id) {
             $group = $this->group->where('code', $code)
-                                 ->where('set_id', $set_id)
-                                 ->where('entity_id', $entity_id)
-                                 ->find()
-                                 ->fetch();
+                ->where('set_id', $set_id)
+                ->where('entity_id', $entity_id)
+                ->find()
+                ->fetch();
             $this->assign('group', $group);
         }
         // 实体
