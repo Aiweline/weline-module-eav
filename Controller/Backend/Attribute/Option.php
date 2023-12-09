@@ -14,10 +14,13 @@ namespace Weline\Eav\Controller\Backend\Attribute;
 
 use Weline\Eav\Model\EavAttribute;
 use Weline\Framework\App\Controller\BackendController;
+use Weline\Framework\App\Exception;
+use Weline\Framework\Exception\Core;
 use Weline\Framework\Http\Cookie;
 use Weline\Framework\Manager\ObjectManager;
 
-class Option extends BackendController
+class
+Option extends BackendController
 {
     /**
      * @var \Weline\Eav\Model\EavAttribute\Option
@@ -31,13 +34,13 @@ class Option extends BackendController
 
     public function search()
     {
-        $field          = $this->request->getGet('field');
-        $limit          = $this->request->getGet('limit');
+        $field        = $this->request->getGet('field');
+        $limit        = $this->request->getGet('limit');
         $entity_id    = $this->request->getGet('entity_id');
         $attribute_id = $this->request->getGet('attribute_id');
-        $search         = $this->request->getGet('search');
-        $json           = ['items'  => [], 'entity_id' => $entity_id, 'attribute_id' => $attribute_id, 'limit' => $limit,
-                           'search' => $search];
+        $search       = $this->request->getGet('search');
+        $json         = ['items' => [], 'entity_id' => $entity_id, 'attribute_id' => $attribute_id, 'limit' => $limit,
+            'search' => $search];
         if (empty($entity_id)) {
             $json['msg'] = __('请先选择实体后操作！');
             return $this->fetchJson($json);
@@ -47,7 +50,7 @@ class Option extends BackendController
             return $this->fetchJson($json);
         }
         $this->option->where('entity_id', $entity_id)
-                     ->where('attribute_id', $attribute_id);
+            ->where('attribute_id', $attribute_id);
         if ($field && $search) {
             $this->option->where($field, $search);
             if ($limit) {
@@ -60,7 +63,7 @@ class Option extends BackendController
             return $this->fetchJson($json);
         }
         $attributes    = $this->option->select()
-                                      ->fetchOrigin();
+            ->fetchOrigin();
         $json['items'] = $attributes;
         return $this->fetchJson($json);
     }
@@ -83,10 +86,10 @@ class Option extends BackendController
         $optionModel = ObjectManager::getInstance(EavAttribute\Option::class);
         try {
             $result = $optionModel->setData($this->request->getPost())
-                                  ->forceCheck(true,
-                                               [EavAttribute\Option::fields_entity_id, EavAttribute\Option::fields_attribute_id,
-                                                EavAttribute\Option::fields_CODE,]
-                                  )->save();
+                ->forceCheck(true,
+                    [EavAttribute\Option::fields_entity_id, EavAttribute\Option::fields_attribute_id,
+                        EavAttribute\Option::fields_CODE,]
+                )->save();
             $this->getMessageManager()->addSuccess(__('添加配置项成功！'));
         } catch (\Exception $exception) {
             $this->getMessageManager()->addWarning(__('添加配置项失败！'));
@@ -110,9 +113,9 @@ class Option extends BackendController
         $optionModel = ObjectManager::getInstance(EavAttribute\Option::class);
         try {
             $result       = $optionModel->setData($this->request->getPost())
-                                        ->forceCheck(true,
-                                                     [EavAttribute\Option::fields_entity_id, EavAttribute\Option::fields_attribute_id, EavAttribute\Option::fields_entity_id]
-                                        )->save();
+                ->forceCheck(true,
+                    [EavAttribute\Option::fields_entity_id, EavAttribute\Option::fields_attribute_id, EavAttribute\Option::fields_entity_id]
+                )->save();
             $json['code'] = 1;
             $json['msg']  = __('添加配置项成功！');
         } catch (\Exception $exception) {
@@ -125,58 +128,54 @@ class Option extends BackendController
     function postDelete()
     {
         $json = ['code' => 0, 'msg' => ''];
-        $code = $this->request->getPost('code');
-        if (empty($code)) {
+        $id   = $this->request->getPost('id');
+        if (empty($id)) {
             $json['msg'] = __('请选择要操作的配置项！');
             return $this->fetchJson($json);
         }
-        $option = $this->option->where([
-                                           'code'           => $code,
-                                           'attribute_id' => $this->request->getPost('attribute_id'),
-                                           'entity_id'    => $this->request->getPost('entity_id'),
-                                       ])->find()->fetch();
-        if (!$option->getId()) {
-            $json['msg'] = __('配置项不存在！');
-            return $this->fetchJson($json);
-        }
         try {
+            $option       = $this->option->load($id);
+            if (!$option->getId()) {
+                $json['msg'] = __('配置项不存在！');
+                return $this->fetchJson($json);
+            }
             $option->delete();
             $json['code'] = 1;
-            $json['msg']  = __('操作成功！');
-        } catch (\Exception $exception) {
-            $json['msg'] = $exception->getMessage();
+            $json['msg']  = __('操作成功：');
+        } catch (\ReflectionException|Core|Exception $e) {
+            $json['msg'] = __('配置项删除失败，请联系管理员') . (DEV ? '：' . $e->getMessage() : '');
         }
         return $this->fetchJson($json);
     }
 
     function postEdit()
     {
-        $json = ['code' => 0,'msg' => ''];
+        $json = ['code' => 0, 'msg' => ''];
         $code = $this->request->getPost('origin_code');
         if (empty($code)) {
             $json['msg'] = __('请选择要操作的配置项！');
             return $this->fetchJson($json);
         }
         $option = $this->option->where([
-                                           'code'           => $code,
-                                           'attribute_id' => $this->request->getPost('attribute_id'),
-                                           'entity_id'    => $this->request->getPost('entity_id'),
-                                       ])->find()->fetch();
+            'code' => $code,
+            'attribute_id' => $this->request->getPost('attribute_id'),
+            'entity_id' => $this->request->getPost('entity_id'),
+        ])->find()->fetch();
         if (!$option->getId()) {
             $json['msg'] = __('配置项不存在！');
             return $this->fetchJson($json);
         }
         try {
             $this->option->setData([
-                                       'code'           => $this->request->getPost('code'),
-                                       'attribute_id' => $this->request->getPost('attribute_id'),
-                                       'entity_id'    => $this->request->getPost('entity_id'),
-                                       'name'            => $this->request->getPost('name'),
-                                   ])->save();
+                'code' => $this->request->getPost('code'),
+                'attribute_id' => $this->request->getPost('attribute_id'),
+                'entity_id' => $this->request->getPost('entity_id'),
+                'name' => $this->request->getPost('name'),
+            ])->save();
             $json['code'] = 1;
             $json['msg']  = __('操作成功！');
-        }catch (\Exception $exception){
-            $json['msg'] = DEBUG?$exception->getMessage():__('操作失败，请检查编码或配置！');
+        } catch (\Exception $exception) {
+            $json['msg'] = DEBUG ? $exception->getMessage() : __('操作失败，请检查编码或配置！');
         }
         return $this->fetchJson($json);
     }

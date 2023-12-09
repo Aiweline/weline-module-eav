@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /*
@@ -22,20 +23,19 @@ class Entity extends \Weline\Framework\App\Controller\BackendController
      */
     private EavEntity $eavEntity;
 
-    function __construct(
+    public function __construct(
         EavEntity $eavEntity
-    )
-    {
+    ) {
         $this->eavEntity = $eavEntity;
     }
 
-    function __init()
+    public function __init()
     {
         parent::__init();
         $this->eavEntity->addLocalDescription();
     }
 
-    function index()
+    public function index()
     {
         if ($search = $this->request->getGet('search')) {
             $this->eavEntity->where('concat(main_table.code,main_table.name,main_table.class,local.name)', "%$search%", 'like');
@@ -46,11 +46,11 @@ class Entity extends \Weline\Framework\App\Controller\BackendController
         return $this->fetch();
     }
 
-    function search(): string
+    public function search(): string
     {
         if ($search = $this->request->getGet('search')) {
             $this->eavEntity->where('concat(code,name,class)', "%$search%", 'like');
         }
-        return $this->fetchJson(['items'=>$this->eavEntity->select()->fetchOrigin()]);
+        return $this->fetchJson(['items' => $this->eavEntity->select()->fetchOrigin()]);
     }
 }

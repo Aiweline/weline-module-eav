@@ -1,4 +1,5 @@
 <?php
+
 /**@var \Weline\Framework\View\Template $this */
 
 /**@var \Weline\Backend\Block\ThemeConfig $themeConfig */
@@ -15,6 +16,7 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
  *@DESC         后台共用头部
 -->
 <html lang='en' <?= ('rtl' === $themeConfig->getThemeModel()) ? " dir=\"rtl\"" : '' ?>>
+
 <head>
     @template(Weline_Admin::common/head.phtml)
     <title><?= __('Weline Admin 管理面板') ?></title>
@@ -22,6 +24,18 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
     <link rel='stylesheet' href='@static(Weline_Admin::assets/libs/twitter-bootstrap-wizard/prettify.css)'>
     <!-- Sweet Alert-->
     <link href='@static(Weline_Admin::assets/libs/sweetalert2/sweetalert2.min.css)' rel='stylesheet' type='text/css'/>
+    <w:js>Weline_Backend::/backend/lib/vue/vue2.6.11.js</w:js>
+    <w:css>Weline_Eav::libs/bootstrap-colorpicker/bootstrap-colorpicker.min.css</w:css>
+    <style>
+        .input-group-addon {
+            display: inline-block;
+            width: 40px;
+            height: 38px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+    </style>
+
 </head>
 
 <body <?= $themeConfig->getLayouts() ?? ''; ?> class='bg-transparent'>
@@ -31,7 +45,7 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
 <!--页头工具条 结束-->
 
 <!-- 开始 页面 -->
-<div id="layout-wrapper overflow-hidden">
+<div class="layout-wrapper overflow-hidden " id="AttributePage">
     <!-- start page message -->
     <div class='row'>
         <template>Weline_Component::message.phtml</template>
@@ -40,104 +54,133 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
         <div class='card-body overflow-hidden'>
             <div id='progress-wizard' class='twitter-bs-wizard'>
                 <ul class='twitter-bs-wizard-nav nav-justified'>
-                    <li class='nav-item'>
-                        <a href='#progress-select-entity'
-                           data-target="@if{progress==='progress-select-entity'=>'1'|'0'}"
-                           class='nav-link'
-                           data-progress='{{progress}}'
-                           data-toggle='tab'>
-                            <span class='step-number'>01</span>
-                            <span class='step-title'><lang>选择实体</lang></span>
-                            <notempty name='eav_entity'>
-                                        <span class='help-block'>
-                                            <lang>你选择了</lang>
-                                            <span class='text-primary'>{{eav_entity.name}}</span>
-                                        </span>
-                            </notempty>
-                        </a>
+                    <!--                    选择实体-->
+                    <li class='nav-item nav-link' :class="{active:activeName=='progress-select-entity'}"
+                        @click="changeNav('progress-select-entity')" scope="attribute" name="progress"
+                        value="progress-select-entity">
+                        <span class='step-number'>01</span>
+                        <span class='step-title'>
+                                <lang>选择实体</lang>
+                            </span>
+                        <span class='help-block' v-if="params.entity_id!==''">
+                                <lang>你选择了</lang>
+                                <span class='text-primary'
+                                      v-text="'('+ findLabel(entities,params.entity_id,'entity_id','name')+')'"></span>
+                            </span>
                     </li>
-                    <li class='nav-item'>
-                        <a href='#progress-select-set'
-                           data-target="@if{progress==='progress-select-set'=>'1'|'0'}"
-                           class='nav-link'
-                           data-progress='{{progress}}'
-                           data-toggle='tab'>
-                            <span class='step-number'>02</span>
-                            <span class='step-title'><lang>选择属性集</lang></span>
-                            <notempty name='eav_entity_attribute_set'>
-                                        <span class='help-block'>
-                                            <lang>你选择了</lang>
-                                            <span class='text-primary'>{{eav_entity_attribute_set.name}}</span>
-                                        </span>
-                            </notempty>
-                        </a>
+                    <!--                    选择属性集-->
+                    <li class='nav-item nav-link' :class="{active:activeName=='progress-select-set'}"
+                        @click="changeNav('progress-select-set')" scope="attribute" name="progress"
+                        value="progress-select-set">
+                        <span class='step-number'>02</span>
+                        <span class='step-title'>
+                                <lang>选择属性集</lang>
+                            </span>
+                        <span class='help-block' v-if="params.set_id!==''">
+                                <lang>你选择了</lang>
+                                <span class='text-primary'
+                                      v-text="'('+ findLabel(sets,params.set_id,'set_id','name')+')'"></span>
+                            </span>
                     </li>
-                    <li class='nav-item'>
-                        <a href='#progress-select-group'
-                           data-target="@if{progress==='progress-select-group'=>'1'|'0'}"
-                           class='nav-link'
-                           data-progress='{{progress}}'
-                           data-toggle='tab'>
-                            <span class='step-number'>03</span>
-                            <span class='step-title'><lang>选择属性组</lang></span>
-                            <notempty name='eav_entity_attribute_set_group'>
-                                        <span class='help-block'>
-                                            <lang>你选择了</lang>
-                                            <span class='text-primary'>{{eav_entity_attribute_set_group.name}}</span>
-                                        </span>
-                            </notempty>
-                        </a>
+                    <!--                   属性组-->
+                    <li class='nav-item nav-link' :class="{active:activeName=='progress-select-group'}"
+                        @click="changeNav('progress-select-group')" scope="attribute" name="progress"
+                        value="progress-select-group">
+                        <span class='step-number'>03</span>
+                        <span class='step-title'>
+                                <lang>选择属性组</lang>
+                            </span>
+                        <span class='help-block' v-if="params.group_id!==''">
+                                <lang>你选择了</lang>
+                                <span class='text-primary'
+                                      v-text="'('+ findLabel(groups,params.group_id,'group_id','name')+')'"></span>
+                            </span>
                     </li>
-                    <li class='nav-item'>
-                        <a href='#progress-attribute-details'
-                           data-target="@if{progress==='progress-attribute-details'=>'1'|'0'}"
-                           class='nav-link'
-                           data-progress='{{progress}}'
-                           data-toggle='tab'>
-                            <span class='step-number'>04</span>
-                            <span class='step-title'>创建属性</span>
-                            <has name='attribute.user_id or attribute.attribute_id'>
-                                        <span class='help-block'>
-                                            <lang>你创建了</lang>
-                                            <span class='text-primary'>{{attribute.name}}（{{attribute.code}}）</span>
-                                        </span>
-                            </has>
-                        </a>
+                    <li class='nav-item nav-link' :class="{active:activeName=='progress-attribute-details'}"
+                        @click="changeNav('progress-attribute-details')" scope="attribute" name="progress"
+                        value="progress-attribute-details">
+                        <span class='step-number'>04</span>
+                        <span class='step-title'>创建属性</span>
+                        <span v-if="params.name!=='' && params.code!==''" class='help-block'>
+                                    <lang>你创建了</lang>
+                                    <span class='text-primary' v-text="params.name+'('+params.code+')'"></span>
+                                </span>
                     </li>
                     <!--如果有配置属性配置项-->
-                    <notempty name='attribute.has_option'>
-                        <li class='nav-item'>
-                            <a href='#progress-attribute-option'
-                               data-target="@if{progress==='progress-attribute-option' or progress==='attribute_option_log'=>'1'|'0'}"
-                               class='nav-link'
-                               data-toggle='tab'>
-                                <span class='step-number'>05</span>
-                                <span class='step-title'><lang>配置项</lang></span>
-                                <span class='help-block'><lang>配置项：</lang><span
-                                        class="text-primary"><w:count>eav_attribute_options</w:count><lang>个</lang></span></span>
-                            </a>
-                        </li>
-                    </notempty>
+
+                    <li v-if='params.has_option==1' class='nav-item nav-link'
+                        :class="{active:activeName=='progress-attribute-option'}"
+                        @click="changeNav('progress-attribute-option')">
+                        <span class='step-number'>05</span>
+                        <span class='step-title'>
+                                <lang>配置项</lang>
+                            </span>
+                        <span class='help-block'>
+                                <lang>配置项：</lang><span class="text-primary">
+                                    <span v-text="tableData.length">
+
+                                    </span>
+                                    <lang>个</lang>
+                                </span>
+                            </span>
+                    </li>
+
                 </ul>
 
                 <div id='bar' class='progress mt-5'>
                     <div class='progress-bar bg-success progress-bar-striped progress-bar-animated'></div>
                 </div>
                 <div class='tab-content twitter-bs-wizard-tab-content'>
-                    <div class='tab-pane' id='progress-select-entity'>
-                        <form action='{{action}}' method='post'>
-                            <input type='hidden' name='progress' value='progress-select-entity'>
-                            <input type='hidden' name='next_progress' value='progress-select-set'>
+
+                    <div class='tab-pane' :class="{active:activeName=='progress-select-entity'}">
+                        <input type='hidden' name='progress' value='progress-select-entity'>
+                        <input type='hidden' name='next_progress' value='progress-select-set'>
+                        <div class='row'>
+                            <div class='mx-auto col-lg-6 mt-2 mb-4'>
+                                <div class='input-group'>
+                                    <input type='search' class='form-control rounded' id='search-entity'
+                                           placeholder='@lang{请输入要查找的实体名或者实体代码}'
+                                           aria-label='@lang{请输入要查找的实体名或者实体代码}' v-model="EntitiesVal"
+                                           aria-describedby='search-addon'/>
+                                    <button type='button' class='btn btn-outline-primary'
+                                            @click='renderSearchEntities($event)'>
+                                        <lang>搜索实体</lang>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='row'>
+                            <div class='mx-auto col-lg-6 mt-2 mb-4'>
+                                <div class='input-group'>
+                                    <select id='search-entity-result' class='form-select form-control rounded' size='10'
+                                            name='entity_id' data-style='btn-primary' data-width='fit'
+                                            scope="attribute"
+                                            v-model="params.entity_id" aria-label='@lang{搜索实体结果}'
+                                            aria-describedby='search-addon' required
+                                    >
+                                        <option v-for="(v,index) in entities" :value='v.entity_id' :label="v.name"
+                                                v-bind:selected="v.entity_id == params.entity_id">
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='tab-pane' :class="{active:activeName=='progress-select-set'}">
+                        <div>
                             <div class='row'>
                                 <div class='mx-auto col-lg-6 mt-2 mb-4'>
                                     <div class='input-group'>
-                                        <input type='search' class='form-control rounded' id='search-entity'
-                                               placeholder='@lang{请输入要查找的实体名或者实体代码}'
-                                               aria-label='@lang{请输入要查找的实体名或者实体代码}'
+                                        <input type='search' class='form-control rounded'
+                                               scope="attribute"
+                                               id='search-entity-attribute-set' v-model="entityGroup"
+                                               placeholder='@lang{请输入要查找的 属性集名 或者 属性集代码}'
+                                               aria-label='@lang{请输入要查找的 属性集名或者 属性集代码}'
                                                aria-describedby='search-addon'/>
                                         <button type='button' class='btn btn-outline-primary'
-                                                onclick='renderSearchEntities(event)'>
-                                            <lang>搜索实体</lang>
+                                                id='renderSearchEntityAttributeSetButton'
+                                                @click='renderSearchEntityAttributeSet($event)'>
+                                            <lang>搜索 {{eav_entity.name}} 属性集</lang>
                                         </button>
                                     </div>
                                 </div>
@@ -145,281 +188,218 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
                             <div class='row'>
                                 <div class='mx-auto col-lg-6 mt-2 mb-4'>
                                     <div class='input-group'>
-                                        <select id='search-entity-result'
-                                                class='form-select form-control rounded'
-                                                size='10'
-                                                name='entity_id'
-                                                data-style='btn-primary' data-width='fit'
-                                                aria-label='@lang{搜索实体结果}'
-                                                aria-describedby='search-addon' required>
-                                            <foreach name='entities'>
-                                                <option value='{{v.entity_id}}' @if{eav_entity.entity_id===v.entity_id=>
-                                                    'selected'}>
-                                                    {{v.name}}
-                                                </option>
-                                            </foreach>
+                                        <select id='search-entity-attribute-set-result'
+                                                scope="attribute"
+                                                class='form-select form-control rounded' size='10' name='set_id'
+                                                v-model="params.set_id" data-style='btn-primary' data-width='fit'
+                                                aria-label='@lang{搜索 属性集 结果}' aria-describedby='search-addon'
+                                        >
+                                            required>
+                                            <option v-for="v in sets" :value='v.set_id' :label="v.name"
+                                                    v-bind:selected="v.set_id == params.set_id">
+                                            </option>
                                         </select>
                                     </div>
                                 </div>
                             </div>
-                        </form>
-                    </div>
-                    <div class='tab-pane' id='progress-select-set'>
-                        <div>
-                            <form action='{{action}}' method='post'>
-                                <input type='hidden' name='progress' value='progress-select-set'>
-                                <input type='hidden' name='next_progress' value='progress-select-group'>
-                                <div class='row'>
-                                    <div class='mx-auto col-lg-6 mt-2 mb-4'>
-                                        <div class='input-group'>
-                                            <input type='search' class='form-control rounded'
-                                                   id='search-entity-attribute-set'
-                                                   placeholder='@lang{请输入要查找的 属性集名 或者 属性集代码}'
-                                                   aria-label='@lang{请输入要查找的 属性集名或者 属性集代码}'
-                                                   aria-describedby='search-addon'/>
-                                            <button type='button' class='btn btn-outline-primary'
-                                                    id='renderSearchEntityAttributeSetButton'
-                                                    onclick='renderSearchEntityAttributeSet(event)'>
-                                                <lang>搜索 {{eav_entity.name}} 属性集</lang>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class='row'>
-                                    <div class='mx-auto col-lg-6 mt-2 mb-4'>
-                                        <div class='input-group'>
-                                            <select id='search-entity-attribute-set-result'
-                                                    class='form-select form-control rounded'
-                                                    size='10'
-                                                    name='set_id'
-                                                    data-style='btn-primary' data-width='fit'
-                                                    aria-label='@lang{搜索 属性集 结果}'
-                                                    aria-describedby='search-addon' required>
-                                                <foreach name='sets'>
-                                                    <option value='{{v.set_id}}'
-                                                            @if{eav_entity_attribute_set.set_id===v.set_id=>
-                                                        'selected'}>
-                                                        {{v.name}}
-                                                    </option>
-                                                </foreach>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </form>
                         </div>
                     </div>
-                    <div class='tab-pane' id='progress-select-group'>
+                    <div class='tab-pane' :class="{active:activeName=='progress-select-group'}">
                         <div>
-                            <form action='{{action}}' method='post'>
-                                <input type='hidden' name='progress' value='progress-select-group'>
-                                <input type='hidden' name='next_progress' value='progress-attribute-details'>
-                                <div class='row'>
-                                    <div class='mx-auto col-lg-6 mt-2 mb-4'>
-                                        <div class='input-group'>
-                                            <input type='search' class='form-control rounded'
-                                                   id='search-entity-attribute-set-group'
-                                                   placeholder='@lang{请输入要查找的【实体-属性集-属性组】名或者【实体-属性集-属性组】代码}'
-                                                   aria-label='@lang{请输入要查找的【实体-属性集-属性组】名或者【实体-属性集-属性组】代码}'
-                                                   aria-describedby='search-addon'/>
-                                            <button type='button' class='btn btn-outline-primary'
-                                                    id='renderSearchEntityAttributeSetGroupButton'
-                                                    onclick='renderSearchEntityAttributeSetGroup(event)'>
-                                                <lang>搜索【实体-属性集-属性组】</lang>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class='row'>
-                                    <div class='mx-auto col-lg-6 mt-2 mb-4'>
-                                        <div class='input-group'>
-                                            <select id='search-entity-attribute-set-group-result'
-                                                    class='form-select form-control rounded'
-                                                    size='10'
-                                                    name='group_id'
-                                                    data-style='btn-primary' data-width='fit'
-                                                    aria-label='@lang{搜索【实体-属性集-属性组】结果}'
-                                                    aria-describedby='search-addon' required>
-                                                <foreach name='groups'>
-                                                    <option value='{{v.group_id}}'
-                                                            @if{eav_entity_attribute_set_group.group_id===v.group_id=>
-                                                        'selected'}>
-                                                        {{v.name}}
-                                                    </option>
-                                                </foreach>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                    <div class='tab-pane' id='progress-attribute-details'>
-                        <form class='needs-validation' novalidate='' action='{{action}}' method='post'>
-                            <input type='hidden' name='progress' value='progress-attribute-details'>
-                            <input type='hidden' name='next_progress' value="@if{attribute
-                                    .has_option==='1'=>'progress-attribute-option'|'progress-submit'}">
                             <div class='row'>
-                                <div class='col-lg-6'>
-                                    <div class='mb-3'>
-                                        <label class='form-label' for='progress-attribute-code'>
-                                            <lang>属性代码</lang>
-                                        </label>
-                                        <input type='text' class='form-control' id='progress-attribute-code'
-                                               name='code' value='{{attribute.code}}'
-                                               maxlength='60' data-parsley-minlength='3'
-                                               placeholder='@lang{属性代码}' required>
-                                        <div class='valid-feedback'>
-                                            <lang>填写正确！</lang>
-                                        </div>
-                                        <div class='valid-feedback'>
-                                            <lang>请正确填写正确属性代码，最小长度3个字符，最大长度60个字符</lang>
-                                        </div>
+                                <div class='mx-auto col-lg-6 mt-2 mb-4'>
+                                    <div class='input-group'>
+                                        <input type='search' class='form-control rounded'
+                                               scope="attribute"
+                                               id='search-entity-attribute-set-group' v-model="entityNameGroup"
+                                               placeholder='@lang{请输入要查找的【实体-属性集-属性组】名或者【实体-属性集-属性组】代码}'
+                                               aria-label='@lang{请输入要查找的【实体-属性集-属性组】名或者【实体-属性集-属性组】代码}'
+                                               aria-describedby='search-addon'/>
+                                        <button type='button' class='btn btn-outline-primary'
+                                                id='renderSearchEntityAttributeSetGroupButton'
+                                                @click='renderSearchEntityAttributeSetGroup($event)'>
+                                            <lang>搜索【实体-属性集-属性组】</lang>
+                                        </button>
                                     </div>
                                 </div>
-                                <div class='col-lg-6'>
-                                    <div class='mb-3'>
-                                        <label class='form-label' for='progress-attribute-name'>
-                                            <lang>属性名</lang>
-                                        </label>
-                                        <input type='text' class='form-control' id='progress-attribute-name'
-                                               name='name'
-                                               value='{{attribute.name}}'
-                                               maxlength='128' data-parsley-minlength='3'
-                                               placeholder='@lang{属性名}' required>
-                                        <div class='valid-feedback'>
-                                            <lang>填写正确！</lang>
-                                        </div>
-                                        <div class='valid-feedback'>
-                                            <lang>请正确填写正确属性代码，最小长度3个字符，最大长度128个字符
-                                            </lang>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class='col-lg-6'>
-                                    <div class='mb-3'>
-                                        <label class='form-label' for='validationType'>
-                                            <lang>属性类型</lang>
-                                        </label>
-                                        <select class='form-control' id='validationType' name='type_id' required=''
-                                                @if{attribute.attribute_id=>'disabled'}>
-                                            <foreach name='types' item='type'>
-                                                <option value='{{type.type_id}}' @if{attribute.type_id== type.type_id=>
-                                                    'selected'}>
-                                                    {{type.name}}
-                                                </option>
-                                            </foreach>
-                                        </select>
-                                        <div class='invalid-feedback'>
-                                            <lang>必须选择一个类型</lang>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class='col-lg-6'>
-                                    <div class='mb-3'>
-                                        <label class='form-label' for='validationEnable'>
-                                            <lang>是否启用</lang>
-                                        </label>
-                                        <select class='form-control' id='validationEnable' required=''
-                                                name='is_enable'>
-                                            <option value='0'
-                                                    @if{attribute.is_enable== 0=>'selected'}>
-                                                <lang>禁用</lang>
-                                            </option>
-                                            <option value='1'
-                                                    @if{attribute.is_enable== 1=>'selected'}>
-                                                <lang>启用</lang>
+                            </div>
+                            <div class='row'>
+                                <div class='mx-auto col-lg-6 mt-2 mb-4'>
+                                    <div class='input-group'>
+                                        <select id='search-entity-attribute-set-group-result'
+                                                scope="attribute"
+                                                class='form-select form-control rounded' size='10' name='group_id'
+                                                data-style='btn-primary' data-width='fit'
+                                                aria-label='@lang{搜索【实体-属性集-属性组】结果}'
+                                                v-model="params.group_id" aria-describedby='search-addon' required>
+                                            <option v-for="v in groups" :value='v.group_id' :label="v.name"
+                                                    v-bind:selected="v.group_id == params.group_id">
                                             </option>
                                         </select>
                                     </div>
                                 </div>
-                                <div class='col-lg-12'>
-                                    <!--高级信息-->
-                                    <div class='accordion mb-3' id='accordionAdvanced'>
-                                        <div class='accordion-item'>
-                                            <h2 class='accordion-header' id='headingOne'>
-                                                <button class='accordion-button' type='button'
-                                                        data-bs-toggle='collapse'
-                                                        data-bs-target='#collapseAdvanced'
-                                                        aria-expanded='true' aria-controls='collapseAdvanced'>
-                                                    <lang>高级设置</lang>
-                                                </button>
-                                            </h2>
-                                            <div id='collapseAdvanced' class='accordion-collapse collapse show'
-                                                 aria-labelledby='headingAdvanced'
-                                                 data-bs-parent='#accordionAdvanced'>
-                                                <div class='accordion-body'>
-                                                    <div class='row'>
-                                                        <div class='col-md-4'>
-                                                            <div class='mb-3'>
-                                                                <label class='form-label' for='validationType'>
-                                                                    <lang>是否多值</lang>
-                                                                </label>
-                                                                <select class='form-control' id='validationType'
-                                                                        required=''
-                                                                        name='multiple_valued'
-                                                                        @if{attribute.attribute_id=>'disabled'}>
-                                                                    <option value='0'
-                                                                            @if{attribute.multiple_valued== 0=>
-                                                                        'selected'}>单值
-                                                                    </option>
-                                                                    <option value='1'
-                                                                            @if{attribute.multiple_valued== 1=>
-                                                                        'selected'}>多值
-                                                                    </option>
-                                                                </select>
-                                                                <div class='invalid-feedback'>
-                                                                    <lang>必须选择一个多值类型</lang>
-                                                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class='tab-pane' :class="{active:activeName=='progress-attribute-details'}">
+
+                        <div class='row'>
+                            <div class='col-lg-6'>
+                                <div class='mb-3'>
+                                    <label class='form-label' for='progress-attribute-code'>
+                                        <lang>属性代码</lang>
+                                    </label>
+                                    <input type='text' class='form-control' id='progress-attribute-code'
+                                           scope="attribute"
+                                           v-model="params.code" name='code' maxlength='60'
+                                           v-on:input='checkCode($event)'
+                                           data-parsley-minlength='3' placeholder='@lang{属性代码}' required>
+                                    <div class='valid-feedback'>
+                                        <lang>填写正确！</lang>
+                                    </div>
+                                    <div class='valid-feedback'>
+                                        <lang>请正确填写正确属性代码，最小长度3个字符，最大长度60个字符</lang>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class='col-lg-6'>
+                                <div class='mb-3'>
+                                    <label class='form-label' for='name'>
+                                        <lang>属性名</lang>
+                                    </label>
+                                    <input type='text' class='form-control' id='name' name='name' v-model="params.name"
+                                           scope="attribute"
+                                           maxlength='128' data-parsley-minlength='3' placeholder='@lang{属性名}'
+                                           required>
+                                    <div class='valid-feedback'>
+                                        <lang>填写正确！</lang>
+                                    </div>
+                                    <div class='valid-feedback'>
+                                        <lang>请正确填写正确属性名，最小长度3个字符，最大长度128个字符
+                                        </lang>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class='col-lg-6'>
+                                <div class='mb-3'>
+                                    <label class='form-label' for='validationType'>
+                                        <lang>属性类型</lang>
+                                    </label>
+                                    <select class='form-control' id='validationType' name='type_id' required=''
+                                            scope="attribute"
+                                            event='click'
+                                            v-model="params.type_id" @change="changeType(types,params.type_id)">
+                                        <foreach name='types' item='type'>
+                                            <option value='{{type.type_id}}' @if{attribute.type_id==type.type_id=>
+                                                'selected'}>
+                                                {{type.name}}
+                                            </option>
+                                        </foreach>
+                                    </select>
+                                    <div class='invalid-feedback'>
+                                        <lang>必须选择一个类型</lang>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class='col-lg-6'>
+                                <div class='mb-3'>
+                                    <label class='form-label' for='validationEnable'>
+                                        <lang>是否启用</lang>
+                                    </label>
+                                    <select class='form-control' id='validationEnable' required=''
+                                            scope="attribute"
+                                            v-model="params.is_enable" name='is_enable'>
+                                        <option value='0' @if{attribute.is_enable==0=>'selected'}>
+                                            <lang>禁用</lang>
+                                        </option>
+                                        <option value='1' @if{attribute.is_enable==1=>'selected'}>
+                                            <lang>启用</lang>
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class='col-lg-12'>
+                                <!--高级信息-->
+                                <div class='accordion mb-3' id='accordionAdvanced'>
+                                    <div class='accordion-item'>
+                                        <h2 class='accordion-header' id='headingOne'>
+                                            <button class='accordion-button' type='button' data-bs-toggle='collapse'
+                                                    data-bs-target='#collapseAdvanced' aria-expanded='true'
+                                                    aria-controls='collapseAdvanced'>
+                                                <lang>高级设置</lang>
+                                            </button>
+                                        </h2>
+                                        <div id='collapseAdvanced' class='accordion-collapse collapse show'
+                                             aria-labelledby='headingAdvanced' data-bs-parent='#accordionAdvanced'>
+                                            <div class='accordion-body'>
+                                                <div class='row'>
+                                                    <div class='col-md-4'>
+                                                        <div class='mb-3'>
+                                                            <label class='form-label' for='validationMulti'>
+                                                                <lang>是否多值</lang>
+                                                            </label>
+                                                            <select class='form-control' id='validationMulti'
+                                                                    scope="attribute"
+                                                                    v-model="params.multiple_valued" required=''
+                                                                    name='multiple_valued' @if{attribute.attribute_id=>'disabled'}>
+                                                                <option value='0' @if{attribute.multiple_valued==0=>
+                                                                    'selected'}>单值
+                                                                </option>
+                                                                <option value='1' @if{attribute.multiple_valued==1=>
+                                                                    'selected'}>多值
+                                                                </option>
+                                                            </select>
+                                                            <div class='invalid-feedback'>
+                                                                <lang>必须选择一个多值类型</lang>
                                                             </div>
                                                         </div>
-                                                        <div class='col-md-4'>
-                                                            <div class='mb-3'>
-                                                                <label class='form-label'
-                                                                       for='validationOption'>
-                                                                    <lang>是否有配置项</lang>
-                                                                </label>
-                                                                <select class='form-control'
-                                                                        id='validationOption' required=''
-                                                                        name='has_option'
-                                                                        @if{attribute.attribute_id=>'disabled'}>
-                                                                    <option value='0'
-                                                                            @if{attribute.has_option== 0=>
-                                                                        'selected'}>
-                                                                        <lang>没有特定配置项</lang>
-                                                                    </option>
-                                                                    <option value='1'
-                                                                            @if{attribute.has_option== 1=>
-                                                                        'selected'}>
-                                                                        <lang>有特定配置项</lang>
-                                                                    </option>
-                                                                </select>
-                                                                <span class='help-block'><lang>有配置项则只能选择配置项内设置的值，没有配置项可以输入任意值。</lang></span>
-                                                            </div>
+                                                    </div>
+                                                    <div class='col-md-4'>
+                                                        <div class='mb-3'>
+                                                            <label class='form-label' for='validationOption'>
+                                                                <lang>是否有配置项</lang>
+                                                            </label>
+                                                            <select class='form-control' id='validationOption'
+                                                                    required='' name='has_option'
+                                                                    scope="attribute"
+                                                                    event="click"
+                                                                    v-model="params.has_option"
+                                                                    :disabled="(params.attribute_id||stopable)?true:false">
+                                                                <option value='0' @if{attribute.has_option==0=>
+                                                                    'selected'}>
+                                                                    <lang>没有特定配置项</lang>
+                                                                </option>
+                                                                <option value='1' @if{attribute.has_option==1=>
+                                                                    'selected'}>
+                                                                    <lang>有特定配置项</lang>
+                                                                </option>
+                                                            </select>
+                                                            <span class='help-block'>
+                                                                    <lang>有配置项则只能选择配置项内设置的值，没有配置项可以输入任意值。</lang>
+                                                                </span>
                                                         </div>
-                                                        <div class='col-md-4'>
-                                                            <div class='mb-3'>
-                                                                <label class='form-label'
-                                                                       for='validationSystem'>
-                                                                    <lang>是否是系统生成</lang>
-                                                                </label>
-                                                                <select class='form-control'
-                                                                        id='validationSystem' required=''
-                                                                        name='is_system'
-                                                                        disabled>
-                                                                    <option value='0'
-                                                                            @if{attribute.is_system== 0=>
-                                                                        'selected'}>
-                                                                        <lang>非系统属性</lang>
-                                                                    </option>
-                                                                    <option value='1'
-                                                                            @if{attribute.is_system== 1=>
-                                                                        'selected'}>
-                                                                        <lang>系统属性</lang>
-                                                                    </option>
-                                                                </select>
-                                                                <span class='help-block'><lang>仅做标记是否由系统生成，或者非系统生成（用户自定义）。</lang></span>
-                                                            </div>
+                                                    </div>
+                                                    <div class='col-md-4'>
+                                                        <div class='mb-3'>
+                                                            <label class='form-label' for='validationSystem'>
+                                                                <lang>是否是系统生成</lang>
+                                                            </label>
+                                                            <select class='form-control' id='validationSystem'
+                                                                    scope="attribute"
+                                                                    required='' name='is_system'
+                                                                    v-model="params.is_system" disabled>
+                                                                <option value='0' @if{attribute.is_system==0=>
+                                                                    'selected'}>
+                                                                    <lang>非系统属性</lang>
+                                                                </option>
+                                                                <option value='1' @if{attribute.is_system==1=>
+                                                                    'selected'}>
+                                                                    <lang>系统属性</lang>
+                                                                </option>
+                                                            </select>
+                                                            <span class='help-block'>
+                                                                    <lang>仅做标记是否由系统生成，或者非系统生成（用户自定义）。</lang>
+                                                                </span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -428,141 +408,231 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
                                     </div>
                                 </div>
                             </div>
-                        </form>
+                        </div>
                     </div>
-                    <notempty name='attribute.has_option'>
-                        <div class='tab-pane' id='progress-attribute-option'>
-                            <form action='{{action}}' method='post'>
-                                <input type='hidden' name='progress' value='progress-attribute-option'>
-                                <input type='hidden' name='next' value='progress-submit'>
+
+                    <div class='tab-pane' :class="{active:(activeName=='progress-attribute-option')}">
+
+                        <div class='row'>
+                            <div class='col-lg-12'>
+                                <div class="table-responsive">
+                                    <!--生成一个表，记录属性options -->
+                                    <table class='table table-active table-editable table-nowrap align-middle table-edits'
+                                           id="attribute-options">
+                                        <thead>
+                                        <tr id="options-header">
+                                            <th data-editable='true'>
+                                                <lang>ID</lang>
+                                            </th>
+                                            <th data-editable='true'>
+                                                <lang>配置项</lang>
+                                            </th>
+                                            <th data-editable='true'>
+                                                <lang>配置值</lang>
+                                            </th>
+                                            <th v-if="activeAttrItem.swatch_color">
+                                                <lang>颜色</lang>
+                                            </th>
+                                            <th v-if="activeAttrItem.swatch_image">
+                                                <lang>图片</lang>
+                                            </th>
+                                            <th v-if="activeAttrItem.swatch_text">
+                                                <lang>文本</lang>
+                                            </th>
+
+                                            <th>
+                                                <lang>创建时间</lang>
+                                            </th>
+                                            <th>
+                                                <lang>更新时间</lang>
+                                            </th>
+                                            <th>
+                                                <lang>操作</lang>
+                                            </th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+
+                                        <tr class="option-item" v-for="(scope,index) in tableData" :key="index">
+                                            <td v-text="scope.option_id"></td>
+                                            <td v-text="scope.code"></td>
+                                            <td v-text="scope.value"></td>
+                                            <!-- 颜色 -->
+                                            <td v-if="activeAttrItem.swatch_color">
+                                                <div class="input-group-addon"
+                                                     :style="{backgroundColor:scope.swatch_color}"></div>
+                                            </td>
+                                            <!-- 图片 -->
+                                            <td v-if="activeAttrItem.swatch_image">
+                                                <img :src="'/media/image/'+scope.swatch_image" alt=""
+                                                     style="width:50px;">
+                                            </td>
+                                            <!-- 文本 -->
+                                            <td v-if="activeAttrItem.swatch_text" v-text="scope.swatch_text"></td>
+                                            <td v-text="scope.create_time"></td>
+                                            <td v-text="scope.update_time"></td>
+                                            <td style='width: 100px'>
+                                                <a class='btn btn-outline-secondary btn-sm edit' title='@lang{编辑}'
+                                                   @click="editRow(scope,index)">
+                                                    <i class='fas fa-pencil-alt'></i>
+                                                </a>
+                                                <a class='btn btn-outline-secondary btn-sm delete' title='@lang{删除}'
+                                                   @click="deleteRow(scope,index)">
+                                                    <i class='mdi mdi-delete text-danger'></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+
+                                        <tr v-if="tableData.length==0">
+                                            <td colspan='7' class='text-center'><span class='help-block'>
+                                                            <lang>暂无配置项。</lang>
+                                                        </span>
+                                            </td>
+                                        </tr>
+                                        <!--生成option添加按钮-->
+                                        <tr>
+                                            <td id='addOption' colspan='8' class='text-center'
+                                                data-bs-toggle='offcanvas' data-bs-target='#offcanvasButtonOptionAdd'
+                                                aria-controls='offcanvasButtonOptionAdd' @click="showAddOff">
+                                                        <span class='text-info'>
+                                                            <i class='mdi mdi-plus font-weight-500 fs-2'></i>
+                                                        </span>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 添加弹窗 -->
+                        <div class='offcanvas offcanvas-bottom' tabindex='-1' id='offcanvasButtonOptionAdd'
+                             aria-labelledby='offcanvasButtonOptionAddLabel'>
+                            <div class='offcanvas-header'>
+                                <h5 id='offcanvasButtonOptionAddLabel'>
+                                    <span v-text='offRow?"@lang{编辑配置项}":"@lang{添加配置项}"'></span>
+                                </h5>
+                                <button type='button' class='btn-close text-reset' data-bs-dismiss='offcanvas'
+                                        aria-label='@lang{关闭}'></button>
+                            </div>
+                            <div class='offcanvas-body'>
+                                <!-- 使用网格系统布局 -->
                                 <div class='row'>
-                                    <div class='col-lg-12'>
-                                        <!--生成一个表，记录属性options -->
-                                        <table class='table table-active table-editable table-nowrap align-middle table-edits' id="attribute-options">
-                                            <thead>
-                                            <tr>
-                                                <th data-editable='true'>
-                                                    <lang>ID</lang>
-                                                </th>
-                                                <th data-editable='true'>
-                                                    <lang>配置项</lang>
-                                                </th>
-                                                <th data-editable='true'>
-                                                    <lang>配置值</lang>
-                                                </th>
-                                                <th>
-                                                    <lang>所属属性ID</lang>
-                                                </th>
-                                                <th>
-                                                    <lang>所属实体ID</lang>
-                                                </th>
-                                                <th>
-                                                    <lang>创建时间</lang>
-                                                </th>
-                                                <th>
-                                                    <lang>更新时间</lang>
-                                                </th>
-                                                <th>
-                                                    <lang>操作</lang>
-                                                </th>
-                                            </tr>
-                                            </thead>
-                                            <tbody>
-                                            <has name='eav_attribute_options'>
-                                                <foreach name='eav_attribute_options'>
-                                                    <tr class="option-item" data-id="{{v.option_id}}">
-                                                        <td data-field='option_id'>{{v.option_id}}</td>
-                                                        <td data-field='code' data-editable='true'>{{v.code}}</td>
-                                                        <td data-field='value' data-editable='true'>{{v.value}}</td>
-                                                        <td data-field="attribute_id">{{v.attribute_id}}</td>
-                                                        <td data-field="entity_id">{{v.entity_id}}</td>
-                                                        <td data-field="create_time">{{v.create_time}}</td>
-                                                        <td data-field="update_time">{{v.update_time}}</td>
-                                                        <td style='width: 100px'>
-                                                            <a class='btn btn-outline-secondary btn-sm edit' title='@lang{编辑}'>
-                                                                <i class='fas fa-pencil-alt'></i>
-                                                            </a>
-                                                            <a class='btn btn-outline-secondary btn-sm delete' title='@lang{删除}'>
-                                                                <i class='mdi mdi-delete text-danger'></i>
-                                                            </a>
-                                                        </td>
-                                                    </tr>
-                                                </foreach>
-                                                <else/>
-                                                <tr>
-                                                    <td colspan='7' class='text-center'><span
-                                                            class='help-block'><lang>暂无配置项。</lang></span>
-                                                    </td>
-                                                </tr>
-                                            </has>
-                                            <!--生成option添加按钮-->
-                                            <tr>
-                                                <td id='addOption' colspan='8' class='text-center' data-bs-toggle='offcanvas'
-                                                    data-bs-target='#offcanvasButtonOptionAdd' aria-controls='offcanvasButtonOptionAdd'>
-                                                                <span class='text-info'>
-                                                                    <i class='mdi mdi-plus font-weight-500 fs-2'></i>
-                                                                </span>
-                                                </td>
-                                            </tr>
-                                            </tbody>
-                                        </table>
+                                    <div class='col-sm-6 col-md-4 col-lg-3'>
+                                        <div class='form-group required'>
+                                            <label for='value' data-toggle='tooltip' title='@lang{每个配置项名称}'>
+                                                <lang>配置项</lang>
+                                            </label>
+                                            <input type='text' class='form-control' id='value' v-model="addParams.value"
+                                                   placeholder='@lang{请输入配置项名称}' required>
+                                        </div>
                                     </div>
-                                </div>
-                            </form>
-                            <!-- 添加弹窗 -->
-                            <div class='offcanvas offcanvas-bottom w-100' tabindex='-1' id='offcanvasButtonOptionAdd'
-                                 aria-labelledby='offcanvasButtonOptionAddLabel'>
-                                <div class='offcanvas-header'>
-                                    <h5 id='offcanvasButtonOptionAddLabel'>
-                                        <lang>添加配置项</lang>
-                                    </h5>
-                                    <button type='button' class='btn-close text-reset' data-bs-dismiss='offcanvas'
-                                            aria-label='@lang{关闭}'></button>
-                                </div>
-                                <div class='offcanvas-body'>
-                                    <!-- 使用网格系统布局 -->
-                                    <div class='row'>
-                                        <div class='col-sm-6 col-md-4 col-lg-3'>
-                                            <div class='form-group required'>
-                                                <label for='value' data-toggle='tooltip'
-                                                       title='@lang{每个配置项名称}'>
-                                                    <lang>配置项</lang>
-                                                </label>
-                                                <input type='text' class='form-control' id='value'
-                                                       placeholder='@lang{请输入配置项名称}' required>
-                                            </div>
+                                    <div class='col-sm-6 col-md-4 col-lg-3'>
+                                        <div class='form-group required'>
+                                            <label for='code' data-toggle='tooltip'
+                                                   title='@lang{每个配置项应该有自己的代码，请填写对应实体和属性时的唯一编码。}'>
+                                                <lang>代码</lang>
+                                            </label>
+                                            <input type='text' class='form-control' id='code' v-model="addParams.code"
+                                                   placeholder='@lang{请输入代码}' required>
                                         </div>
-                                        <div class='col-sm-6 col-md-4 col-lg-3'>
-                                            <div class='form-group required'>
-                                                <label for='code' data-toggle='tooltip'
-                                                       title='@lang{每个配置项应该有自己的代码，请填写对应实体和属性时的唯一编码。}'>
-                                                    <lang>代码</lang>
-                                                </label>
-                                                <input type='text' class='form-control' id='code'
-                                                       placeholder='@lang{请输入代码}' required>
+                                    </div>
+
+
+                                    <div class='col-sm-6 col-md-4 col-lg-3' v-if="activeAttrItem.swatch_color">
+                                        <div class='form-group required'>
+                                            <label for='code' data-toggle='tooltip' title='@lang{每个配置颜色，请填写}'>
+                                                <lang>颜色</lang>
+                                            </label>
+                                            <div id="swatch_color_picker" class="input-group colorpicker-component">
+                                                <input type="text" v-model="addParams.swatch_color"
+                                                       :style="{backgroundColor:addParams.swatch_color}"
+                                                       placeholder='@lang{请选择}' class="form-control"/>
+                                                <!-- <span class="input-group-addon" ><i></i></span> -->
                                             </div>
+
                                         </div>
-                                        <div class='col-sm-6 col-md-4 col-lg-3 d-flex align-items-end'>
-                                            <div class='form-group'>
-                                                <button type='button' class='btn btn-primary' href='' onclick='addRow(event)'>
-                                                    <lang>添加</lang>
+                                    </div>
+                                    <div class='col-sm-6 col-md-4 col-lg-3' v-if="activeAttrItem.swatch_image">
+                                        <div class='form-group required'>
+                                            <label for='code' data-toggle='tooltip'
+                                                   title='@lang{每个配置的图片，请选择}'>
+                                                <lang>图片</lang>
+                                            </label>
+
+                                            <div class='form-control' style="padding:0px;">
+                                                <img :src="'/media/image/'+ addParams.swatch_image + '?w=50&h=50'"
+                                                     alt="" v-if="addParams.swatch_image">
+                                                <button type="button"
+                                                        class="btn btn-primary btn-sm waves-effect waves-light"
+                                                        @click="chooseImgModel=true">选择图片
                                                 </button>
                                             </div>
+
+
+                                            <input type='hidden' class='form-control' id='callBackImg'
+                                                   placeholder='@lang{请选中图片}' required>
+
+                                        </div>
+                                    </div>
+                                    <div class='col-sm-6 col-md-4 col-lg-3' v-if="activeAttrItem.swatch_text">
+                                        <div class='form-group required'>
+                                            <label for='code' data-toggle='tooltip'
+                                                   title='@lang{每个配置的文本，请填写}'>
+                                                <lang>文本</lang>
+                                            </label>
+                                            <input type='text' class='form-control' id='code'
+                                                   v-model="addParams.swatch_text" placeholder='@lang{请输入文本}'
+                                                   required>
+                                        </div>
+                                    </div>
+
+                                    <div class='col-sm-6 col-md-4 col-lg-3 d-flex align-items-end'>
+                                        <div class='form-group'>
+                                            <button type='button' class='btn btn-primary' href='' @click='addRow'>
+                                                <span v-text='offRow?"@lang{编辑}":"@lang{添加}"'></span>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </notempty>
+                        <!-- 选择图片 -->
+
+                        <div class="modal fade show" :style="{display:chooseImgModel?'block':'none'}">
+                            <div class="modal-dialog modal-fullscreen">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 id="chooseImgModelLabel" class="modal-title">图片选择器 <span
+                                                    class="text-danger">（双击选中图片）</span></h5>
+                                        <button type="button" data-bs-dismiss="modal" aria-label="Close"
+                                                class="btn-close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <iframe class="w-100 h-100"
+                                                src="@backend-url('/elfinder/backend/connector/manager?s=admin_123%2Fshop-store%2Fbackend%2Fstore%2Fedit&id=7&isIframe=1&targetElement=callBackImg&startPath=store%2Flogo&multi=0&ext=png%2Cjpeg%2Cjpg%2Cwebp%2Csvg%2Cico&size=102400#elf_l1_XA')"
+                                                frameborder="0"></iframe>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary waves-effect"
+                                                @click="closeImgModel">
+                                            关闭
+                                        </button>
+                                        <button type="button" data-bs-dismiss="modal"
+                                                class="btn btn-primary waves-effect waves-light" @click="closeImgModel">
+                                            确定
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div v-if="(activeName=='progress-attribute-details'&&!this.params.has_option)||activeName=='progress-attribute-option'">
+                        <button class="btn btn-primary pull-right" @click="submitAttr">提交</button>
+                    </div>
                 </div>
-                <ul class='pager wizard twitter-bs-wizard-pager-link'>
-                    <li class='previous'><a href='javascript: void(0);'>
-                            <lang>返回上一步</lang>
-                        </a></li>
-                    <li class='next'><a href='javascript: void(0);'>
-                            <lang>下一步</lang>
-                        </a></li>
-                </ul>
+
             </div>
         </div>
     </div>
@@ -586,313 +656,94 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
 
 <!-- Sweet alert init js-->
 <script src='@static(Weline_Admin::assets/js/pages/sweet-alerts.init.js)'></script>
-
+<w:js>Weline_Eav::libs/bootstrap-colorpicker/bootstrap-colorpicker.min.js</w:js>
+<js:part name="debounce"/>
 <script>
-
-    function getEntityId() {
-        let entity_id = '{{eav_entity.entity_id}}';
-        if (entity_id === '') {
-            entity_id = $('#progress-select-entity').find('option:selected').val()
-        }
-        return entity_id;
-    }
-
-    function getSetId() {
-        let set_id = '{{eav_entity_attribute_set.set_id}}';
-        if (set_id === '') {
-            set_id = $('#progress-select-set').find('option:selected').val()
-        }
-        return set_id;
-    }
-
-    function getGroupId() {
-        let group_id = '{{eav_entity_attribute_set_group.group_id}}';
-        if (group_id === '') {
-            group_id = $('#progress-select-group').find('option:selected').val()
-        }
-        return group_id;
-    }
-
-    function getAttributeID() {
-        let attribute_id = '{{attribute.attribute_id}}';
-        if (attribute_id === '') {
-            attribute_id = $('#progress-attribute-code').val()
-        }
-        return attribute_id;
-    }
-
-    /*实体搜索*/
-    function renderSearchEntities(e) {
-        let search_entity = $(e.target)
-        let search = search_entity.val()
-        $.ajax({
-            url: '@backend-url("*/backend/entity/search")?search=' + search,
-            success: function (res) {
-                let items = res['items']
-                let search_entity_result = $('#search-entity-result')
-                search_entity_result.empty()
-                for (const item of items) {
-                    search_entity_result.append(`<option value="${item.entity_id}">${item.name}</option>`)
+    var AttributePage = new Vue({
+        el: '#AttributePage',
+        data: {
+            chooseImgModel: false, //图片弹框显示
+            params: {
+                attribute_id: '{{attribute.attribute_id}}', //编辑携带
+                entity_id: '{{attribute.entity_id}}', //选择实体ID
+                set_id: '{{attribute.set_id}}', //属性集ID
+                group_id: '{{attribute.group_id}}', //属性组ID
+                code: '{{attribute.code}}', //代码
+                name: '{{attribute.name}}', //属性名
+                type_id: '{{attribute.type_id|0}}', //属性类型
+                is_enable: '{{attribute.is_enable|1}}', //是否启用
+                has_option: '{{attribute.has_option|0}}', //是否有配置项
+                is_system: '{{attribute.is_system|0}}', //是否系统生成
+                multiple_valued: '{{attribute.multiple_valued|0}}', //是否多值
+            },
+            addParams: { //添加配置项
+                option_id: 0,
+                value: '', //配置项
+                code: '', //代码
+                swatch_color: '',
+                swatch_image: '',
+                swatch_text: ''
+            },
+            stopable: 0, //是否禁用 是否有配置项
+            EntitiesVal: '', //搜实体名称
+            entityNameGroup: '', //搜属性组
+            entityGroup: '', //属性集搜索输入
+            entities: <?= isset($entities) ? json_encode($entities) : '[]' ?>,
+            sets: [],
+            groups: [],
+            types: <?= isset($types) ? json_encode($types) : '[]' ?>,
+            activeName: '{{attribute.progress|"progress-select-entity"}}', //导航选中名称
+            tableData: <?= isset($attribute['options']) ? json_encode($attribute['options']) : '[]' ?>, //第五步的表格数据
+            activeAttrItem: { //当前选中的属性类型的内容
+                swatch_color: 0,
+                swatch_image: 0,
+                swatch_text: 0
+            },
+            offRow: '', //编辑的当前行
+            EditIndex: 0, //编辑当前行的下标,
+            totalOptions:0 // 总计个数
+        },
+        mounted() {
+            this.activeName = '{{attribute.progress|"progress-select-entity"}}';
+            if (this.params.entity_id) {
+                this.renderSearchEntityAttributeSet();
+            }
+            if (this.params.set_id) {
+                this.renderSearchEntityAttributeSetGroup();
+            }
+            for (let type of this.types) {
+                if (type.type_id == this.params.type_id && type.is_swatch == 1) {
+                    this.stopable = 1;
+                    // 更新swatch类型
+                    this.activeAttrItem.swatch_color = type.swatch_color;
+                    this.activeAttrItem.swatch_image = type.swatch_image;
+                    this.activeAttrItem.swatch_text = type.swatch_text;
                 }
             }
-        })
-    }
+        },
+        updated() {
 
-    /* 实体属性集搜索 */
-    function renderSearchEntityAttributeSet(e) {
-        let search = $(e.target)
-        search = search.val()
-        let entity_id = getEntityId()
-        $.ajax({
-            url: '@backend-url("*/backend/attribute/set/search")?search=' + search + '&entity_id=' + entity_id,
-            success: function (res) {
-                if (res['msg']) {
-                    Swal.fire(
-                        {
-                            title: '警告！',
-                            text: res['msg'],
-                            icon: 'error',
-                            dangerMode: true,
-                            confirmButtonText: '@lang{好的}'
+        },
+        methods: {
+            // 提交
+            submitAttr() {
+                // 判断是否选择属性类型了
+                if (!this.params.name) {
+                    Swal.fire({
+                        title: '@lang{请先创建属性名再操作！}',
+                        text: '@lang{当前属性名为空！无法创建属性配置项！}',
+                        icon: 'warning',
+                        confirmButtonText: '@lang{好的}'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // 跳转属性创建步骤
+                            $('.btn-close').click()
+                            this.activeName = 'progress-attribute-details';
                         }
-                    )
-                    return false;
+                    })
+                    return false
                 }
-                let items = res['items']
-                let search_entity_attribute_set_result = $('#search-entity-attribute-set-result')
-                search_entity_attribute_set_result.empty()
-                for (const item of items) {
-                    search_entity_attribute_set_result.append(`<option value="${item.set_id}">${item.name}</option>`)
-                }
-            }
-        })
-    }
-
-    /* 实体属性集属性组 */
-    function renderSearchEntityAttributeSetGroup(e) {
-        let search = $(e.target)
-        search = search.val()
-        let entity_id = getEntityId()
-        let set_id = getSetId()
-        $.ajax({
-            url: '@backend-url("*/backend/attribute/group/search")?search=' + search +
-                '&entity_id=' + entity_id + '&set_id=' + set_id,
-            success: function (res) {
-                if (res['msg']) {
-                    Swal.fire(
-                        {
-                            title: '警告！',
-                            text: res['msg'],
-                            icon: 'error',
-                            dangerMode: true,
-                            confirmButtonText: '@lang{好的}'
-                        }
-                    )
-                    return false;
-                }
-                let items = res['items']
-                let search_entity_attribute_set_result = $('#search-entity-attribute-set-group-result')
-                search_entity_attribute_set_result.empty()
-                for (const item of items) {
-                    search_entity_attribute_set_result.append(`<option value="${item.group_id}">${item.name}</option>`)
-                }
-            }
-        })
-    }
-
-    /*监听实体选择*/
-    $('#search-entity-result').on('change', (e) => {
-        let target = $(e.target).find('option:selected')
-        let stepHelper = $('a[class="nav-link active"]')
-        stepHelper.find('.help-block').remove()
-        stepHelper.append(`<span class="help-block">
-                                            ${__('你选择了')}
-                                            <span class="text-primary">${target.text()}</span>
-                                        </span>`)
-        // 渲染下一个
-        $('#renderSearchEntityAttributeSetButton').click()
-    })
-    /*监听属性集选择*/
-    $('#search-entity-attribute-set-result').on('change', (e) => {
-        let target = $(e.target).find('option:selected')
-        let stepHelper = $('a[class="nav-link active"]')
-        stepHelper.find('.help-block').remove()
-        stepHelper.append(`<span class="help-block">
-                                            ${__('你选择了')}
-                                            <span class="text-primary">${target.text()}</span>
-                                        </span>`)
-        // 渲染下一个
-        $('#renderSearchEntityAttributeSetGroupButton').click()
-    })
-    /*监听属性组选择*/
-    $('#search-entity-attribute-set-group-result').on('change', (e) => {
-        let target = $(e.target).find('option:selected')
-        let stepHelper = $('a[class="nav-link active"]')
-        stepHelper.find('.help-block').remove()
-        stepHelper.append(`<span class="help-block">
-                                            ${__('你选择了')}
-                                            <span class="text-primary">${target.text()}</span>
-                                        </span>`)
-    })
-    /*获取Option的所有数据*/
-    const getAllOptionData = function () {
-        let data = []
-        $('#attribute-options').find('.option-item').each(function (index, el) {
-            let $this = $(el), code = $this.find('td[data-field="code"]').text()
-            if (code !== '') {
-                data.push({
-                    option_id: $this.find("td[data-field='option_id']").text(),
-                    code: code,
-                    value: $this.find("td[data-field='value']").text(),
-                    entity_id: $this.find("td[data-field='entity_id']").text(),
-                    attribute_id: $this.find("td[data-field='attribute_id']").text(),
-                    create_time: $this.find("td[data-field='create_time']").text(),
-                    update_time: $this.find("td[data-field='update_time']").text()
-                })
-            }
-        })
-        return data
-    }
-
-    /*添加配置项记录*/
-    async function addRow(e) {
-        // 阻止默认事件提交form表单
-        let attribute_options_table = $('#attribute-options')
-        // 校验数据
-        let entity_id = getEntityId()
-        if (!entity_id) {
-            Swal.fire({
-                title: '@lang{请先选择实体再操作！}',
-                text: '@lang{当前实体为空！无法创建属性配置项！}',
-                icon: 'warning',
-                confirmButtonText: '@lang{好的}'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // 跳转实体选择步骤
-                    $('#progress-wizard').find('a[href="#progress-select-entity"]').tab('show')
-                }
-            })
-            return false
-        }
-        let attribute_id = getAttributeID()
-        if (!attribute_id) {
-            Swal.fire({
-                title: '@lang{请先创建属性再操作！}',
-                text: '@lang{当前属性代码为空！无法创建属性配置项！}',
-                icon: 'warning',
-                confirmButtonText: '@lang{好的}'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // 跳转属性创建步骤
-                    $('#progress-wizard').find('a[href="#progress-attribute-details"]').tab('show')
-                }
-            })
-            return false
-        }
-        let code = $('#code')
-        let value = $('#value')
-        if (!code.val()) {
-            Swal.fire({
-                title: '@lang{数据校验}',
-                text: '@lang{请填写配置项代码再操作！}',
-                icon: 'warning',
-                confirmButtonText: '@lang{好的}'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // 跳转属性创建步骤
-                    $('#code').addClass('border-danger')
-                } else {
-                    $('#code').removeClass('border-danger')
-                }
-            })
-            return false
-        }
-        if (!value.val()) {
-            Swal.fire({
-                title: '@lang{数据校验}',
-                text: '@lang{请填写配置项名称再操作！}',
-                icon: 'warning',
-                confirmButtonText: '@lang{好的}'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // 跳转属性创建步骤
-                    $('#name').addClass('border-danger')
-                } else {
-                    $('#name').removeClass('border-danger')
-                }
-            })
-            return false
-        }
-        let codeV = code.val()
-        let valueV = value.val()
-        let createTimeV = new Date().toLocaleString()
-        let updateTimeV = new Date().toLocaleString()
-
-        // 获取attribute-options的所有数据，检查attribute-options表格中是否已经存在该属性配置项
-        let allOptions = getAllOptionData();
-        let breakFlag = false;
-        for (let option of allOptions) {
-            if (option.code === codeV) {
-                await Swal.fire({
-                    title: '@lang{数据校验}',
-                    text: '@lang{填写的配置项已经存在，需要替换么！}',
-                    icon: 'warning',
-                    confirmButtonText: '@lang{替换}',
-                    cancelButtonText: '@lang{再次编辑}',
-                    showCancelButton: true
-                }).then((result) => {
-                    // 确认替换
-                    if (result.isConfirmed) {
-                        // 删除原来的配置项
-                        attribute_options_table.find('tr[data-id="' + codeV + '"]').remove()
-                    } else {
-                        breakFlag = true;
-                    }
-                })
-            }
-        }
-        if (breakFlag) {
-            return;
-        }
-        // 新建一行
-        const newRow = $('<tr class="option-item" data-id="0" style="cursor: pointer;">');
-        // 新建单元格
-        const optionIdCell = $('<td data-field="option_id">').text(0);
-        const codeCell = $('<td data-field="code">').text(codeV);
-        const valueCell = $('<td data-field="value">').text(valueV);
-        const entityCell = $('<td data-field="entity_id">').text(entity_id);
-        const attributeCell = $('<td data-field="attribute_id">').text(attribute_id);
-        const createdTimeCell = $('<td data-field="create_time" >').text(createTimeV);
-        const updateTimeCell = $('<td data-field="update_time" >').text(updateTimeV);
-        const actionCell = $(`<td style='width: 100px'>`).html(`<a class='btn btn-outline-secondary btn-sm edit' title='@lang{编辑}'>
-                                          <i class='fas fa-pencil-alt'></i>
-                                  </a>
-                                      <a class='btn btn-outline-secondary btn-sm delete' title='@lang{删除}'>
-                                         <i class='mdi mdi-delete text-danger'></i>
-                                  </a>`);
-        // 将单元格添加到新行
-        newRow.append(optionIdCell, codeCell, valueCell, attributeCell, entityCell, createdTimeCell, updateTimeCell, actionCell)
-        // 将新行添加到表格
-        attribute_options_table.find('tbody').prepend(newRow);
-        /*监听配置项删除*/
-        let option_item = $('#attribute-options .option-item')
-        option_item.find('a.delete').on('click', (e) => {
-            let target = $(e.currentTarget)
-            if (parseInt(target.attr('data-init')) === 1) {
-                return false
-            }
-            target.attr('data-init', 1)
-            let parent = target.parent().parent()
-            parent.remove()
-        })
-        // 将客户提交的数据加载到后台session
-        allOptions = getAllOptionData()
-        $.ajax({
-            url: '@backend-url("*/backend/attribute/add")?isAjax=1',
-            type: 'POST',
-            data: {options: allOptions, progress: 'progress-attribute-option-log'},
-            success: function (result) {
-                if (result['code'] === 0) {
+                if (!this.params.code) {
                     Swal.fire({
                         title: '@lang{请先创建属性再操作！}',
                         text: '@lang{当前属性代码为空！无法创建属性配置项！}',
@@ -901,339 +752,486 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
                     }).then((result) => {
                         if (result.isConfirmed) {
                             // 跳转属性创建步骤
-                            $('#progress-wizard').find('a[href="#progress-attribute-details"]').tab('show')
+                            $('.btn-close').click()
+                            this.activeName = 'progress-attribute-details';
                         }
                     })
+                    return false
                 }
-                $('#code').val('')
-                $('#value').val('').addClass('border-danger')
-                // alert(result)
-            }
-        })
-        // 重新监听编辑表
-        renderEditTable()
-    }
-
-    // 文档加载完毕后执行
-    $(function () {
-        $('.twitter-bs-wizard-nav .nav-link[data-target="1"]').tab('show')
-
-        /*延迟期间最多执行一次：优化输入请求过多ajax*/
-        function debounce(func, delay) {
-            let timeoutId;
-            return function (...args) {
-                if (timeoutId) {
-                    clearTimeout(timeoutId);
+                if (!this.params.type_id) {
+                    Swal.fire({
+                        title: '@lang{请先选择属性类型再操作！}',
+                        text: '@lang{当前属性类型为空！无法创建属性配置项！}',
+                        icon: 'warning',
+                        confirmButtonText: '@lang{好的}'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // 跳转实体选择步骤
+                            this.activeName = 'progress-attribute-details'; //导航选中名称
+                            $('.btn-close').click()
+                        }
+                    })
+                    return false
                 }
-                timeoutId = setTimeout(() => {
-                    func.apply(this, args);
-                    timeoutId = null;
-                }, delay);
-            };
-        }
 
-        function throttle(func, delay) {
-            let timeoutId;
-            let lastExecTime = 0;
-            return function (...args) {
-                const elapsedTime = new Date().getTime() - lastExecTime;
-                if (elapsedTime > delay) {
-                    lastExecTime = new Date().getTime();
-                    func.apply(this, args);
+                //    判断是否选择实体
+                if (!this.params.entity_id) {
+                    Swal.fire({
+                        title: '@lang{请先选择实体再操作！}',
+                        text: '@lang{当前实体为空！无法创建属性配置项！}',
+                        icon: 'warning',
+                        confirmButtonText: '@lang{好的}'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $('.btn-close').click()
+                            this.activeName = 'progress-select-entity';
+                        }
+                    })
+                    return false
+                }
+                if (!this.params.set_id) {
+                    Swal.fire({
+                        title: '@lang{请先创建属性集再操作！}',
+                        text: '@lang{当前属性集代码为空！无法创建属性配置项！}',
+                        icon: 'warning',
+                        confirmButtonText: '@lang{好的}'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // 跳转属性创建步骤
+                            $('.btn-close').click()
+                            this.activeName = 'progress-select-set';
+                        }
+                    })
+                    return false
+                }
+
+
+                if (!this.params.group_id) {
+                    Swal.fire({
+                        title: '@lang{请先创建属性组再操作！}',
+                        text: '@lang{当前属性组代码为空！无法创建属性配置项！}',
+                        icon: 'warning',
+                        confirmButtonText: '@lang{好的}'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // 跳转属性创建步骤
+                            $('.btn-close').click()
+                            this.activeName = 'progress-select-group';
+                        }
+                    })
+                    return false
+                }
+                console.log(this.params, '获取已填写数据', this.tableData, '第5部分的数据')
+                $.ajax({
+                    type: 'POST',
+                    url: "@backend-url('*/backend/attribute/save')",
+                    data: {
+                        'base': this.params,
+                        'option': this.tableData
+                    },
+                    success: function (res) {
+                        if (res.code == 0) {
+                            Swal.fire({
+                                title: res.msg,
+                                icon: 'success',
+                                confirmButtonText: '@lang{好的}'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    showLoading()
+                                    window.parent.location.reload();
+                                }
+                            })
+                        }
+                    }
+                })
+            },
+            closeImgModel() {
+                console.log($('#callBackImg').val(), '图片回显的值')
+                this.chooseImgModel = false;
+                this.addParams.swatch_image = decodeURIComponent($('#callBackImg').val());
+                this.offRow = '';
+            },
+            debounceChange: debounce(function (code, entity_id, set_id, group_id) {
+                if (!entity_id) {
+                    Swal.fire({
+                        title: '@lang{请先选择实体再操作！}',
+                        text: '@lang{当前实体为空！无法创建属性！}',
+                        icon: 'warning',
+                        confirmButtonText: '@lang{好的}'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.activeName = 'progress-select-entity';
+                        }
+                    })
+                    return false
+                }
+                if (!set_id) {
+                    Swal.fire({
+                        title: '@lang{请先创建属性集再操作！}',
+                        text: '@lang{当前属性集代码为空！无法创建属性！}',
+                        icon: 'warning',
+                        confirmButtonText: '@lang{好的}'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.activeName = 'progress-select-set';
+                        }
+                    })
+                    return false
+                }
+                if (!group_id) {
+                    Swal.fire({
+                        title: '@lang{请先选择属性组再操作！}',
+                        text: '@lang{当前属性组代码为空！无法创建属性！}',
+                        icon: 'warning',
+                        confirmButtonText: '@lang{好的}'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.activeName = 'progress-select-group';
+                        }
+                    })
+                    return false
+                }
+                $.ajax({
+                    type: "get",
+                    url: '@backend-url("*/backend/attribute/search")?field=code&limit=1&search=' + code + '&entity_id=' + entity_id + '&set_id=' + set_id + '&group_id=' + group_id,
+                    dataType: "json",
+                    success: (res) => {
+                        if (res.items.length > 0) {
+                            Swal.fire({
+                                title: '@lang{属性已存在！}',
+                                text: '@lang{该属性已存在！}',
+                                icon: 'warning',
+                                confirmButtonText: '@lang{好的}'
+                            }).then(function (result) {
+                                if (result.isConfirmed) {
+                                    $('#progress-attribute-code').css({border: 'red 1px solid'});
+                                }
+                            })
+                        } else {
+                            $('#progress-attribute-code').css({border: 'green 1px solid'});
+                        }
+                    },
+                    error: (res) => {
+                        console.log(res)
+                    }
+                })
+            }, 500),
+            debounceSaveType: debounce(function (type) {
+                let has_option = 0;
+                if (type.is_swatch == 1) {
+                    has_option = 1;
+                    this.params.has_option = has_option;
+                }
+                $.ajax({
+                    type: "post",
+                    url: "@backend-url('backend/user-data')",
+                    dataType: "json",
+                    data: {
+                        scope: 'attribute',
+                        name: 'has_option',
+                        value: has_option
+                    },
+                    success: (res) => {
+                    },
+                    error: (res) => {
+                        console.log(res, '保存失败')
+                    }
+                })
+            }, 500),
+            // 查询code是否可用
+            checkCode(e) {
+                this.debounceChange(this.params.code, this.params.entity_id, this.params.set_id, this.params.group_id)
+            },
+            // 编辑选中配置项列
+            editRow(row, index) {
+                $('#addOption').click();
+                // 初始化颜色选择器
+                if (this.activeAttrItem.swatch_color) {
+                    $('#swatch_color_picker').colorpicker();
+                    $('#swatch_color_picker').on('change', (event) => {
+                        this.addParams.swatch_color = event.value;
+                    });
+                }
+                // 编辑回显
+                this.addParams = JSON.parse(JSON.stringify(row));
+                this.offRow = row;
+                this.EditIndex = index;
+            },
+            // 删除选中配置项列
+            deleteRow(row, index) {
+                Swal.fire({
+                    title: '@lang{提示}',
+                    text: '@lang{确认删除当前列吗？}',
+                    icon: 'info',
+                    confirmButtonText: '@lang{确定}',
+                    cancelButtonText: '@lang{取消}',
+                    showConfirmButton: true,
+                    showCancelButton: true,
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.tableData.splice(index, 1)
+                        if(row.option_id){
+                            $.ajax({
+                                type: "post",
+                                url: "@backend-url('*/backend/attribute/option/delete')",
+                                data:{
+                                    id: row.option_id
+                                },
+                                dataType: "json",
+                            })
+                        }
+                    }
+                })
+            },
+            showAddOff() {
+                console.log('监听点击了显示添加弹窗')
+
+                this.addParams = { //添加配置项
+                    value: '', //配置项
+                    code: '', //代码
+                    swatch_color: '',
+                    swatch_image: '',
+                    swatch_text: ''
+                }
+                // 初始化颜色选择器
+                if (this.activeAttrItem.swatch_color) {
+                    $('#swatch_color_picker').colorpicker();
+                    $('#swatch_color_picker').on('change', (event) => {
+                        this.addParams.swatch_color = event.value;
+                    });
+                }
+                // 清除编辑内容
+                this.offRow = '';
+
+            },
+            // 添加配置项
+            addRow() {
+
+                // 判断是否选择属性类型了
+                if (!this.stopable) {
+                    Swal.fire({
+                        title: '@lang{请先选择属性类型再操作！}',
+                        text: '@lang{当前属性类型为空！无法创建属性配置项！}',
+                        icon: 'warning',
+                        confirmButtonText: '@lang{好的}'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // 跳转实体选择步骤
+                            this.activeName = 'progress-attribute-details'; //导航选中名称
+                            $('.btn-close').click()
+                        }
+                    })
+                    return false
+                }
+                //    判断是否选择实体
+                if (!this.params.entity_id) {
+                    Swal.fire({
+                        title: '@lang{请先选择实体再操作！}',
+                        text: '@lang{当前实体为空！无法创建属性配置项！}',
+                        icon: 'warning',
+                        confirmButtonText: '@lang{好的}'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $('.btn-close').click()
+                            this.activeName = 'progress-select-entity';
+                        }
+                    })
+                    return false
+                }
+                if (!this.params.set_id) {
+                    Swal.fire({
+                        title: '@lang{请先创建属性集再操作！}',
+                        text: '@lang{当前属性集代码为空！无法创建属性配置项！}',
+                        icon: 'warning',
+                        confirmButtonText: '@lang{好的}'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // 跳转属性创建步骤
+                            $('.btn-close').click()
+                            this.activeName = 'progress-select-set';
+                        }
+                    })
+                    return false
+                }
+
+
+                if (!this.params.group_id) {
+                    Swal.fire({
+                        title: '@lang{请先创建属性组再操作！}',
+                        text: '@lang{当前属性组代码为空！无法创建属性配置项！}',
+                        icon: 'warning',
+                        confirmButtonText: '@lang{好的}'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // 跳转属性创建步骤
+                            $('.btn-close').click()
+                            this.activeName = 'progress-select-group';
+                        }
+                    })
+                    return false
+                }
+
+                if (!this.addParams.value || !this.addParams.code) {
+                    Swal.fire({
+                        title: '@lang{请先填写配置项和代码再操作！}',
+                        text: '@lang{当前属性配置项或代码为空！}',
+                        icon: 'warning',
+                        confirmButtonText: '@lang{好的}'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                        }
+                    })
+                    return false
+                }
+
+                if (this.activeAttrItem.swatch_color && !this.addParams.swatch_color) {
+                    Swal.fire({
+                        title: '@lang{请先选择颜色再操作！}',
+                        text: '@lang{当前属性颜色为空！}',
+                        icon: 'warning',
+                        confirmButtonText: '@lang{好的}'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                        }
+                    })
+                    return false
+                }
+
+                if (this.activeAttrItem.swatch_image && !this.addParams.swatch_image) {
+                    Swal.fire({
+                        title: '@lang{请先选择图片再操作！}',
+                        text: '@lang{当前属性图片为空！}',
+                        icon: 'warning',
+                        confirmButtonText: '@lang{好的}'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                        }
+                    })
+                    return false
+                }
+
+                if (this.activeAttrItem.swatch_text && !this.addParams.swatch_text) {
+                    Swal.fire({
+                        title: '@lang{请先填写文本再操作！}',
+                        text: '@lang{当前属性文本为空！}',
+                        icon: 'warning',
+                        confirmButtonText: '@lang{好的}'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                        }
+                    })
+                    return false
+                }
+
+                let params = JSON.parse(JSON.stringify(this.addParams))
+
+                // 如果有说明是编辑列表某列
+                if (this.offRow) {
+                    // 创建时间和更新时间
+                    params.update_time = new Date().toLocaleString()
+                    this.tableData.splice(this.EditIndex, 1, params);
                 } else {
-                    clearTimeout(timeoutId);
-                    timeoutId = setTimeout(() => {
-                        lastExecTime = new Date().getTime();
-                        func.apply(this, args);
-                        timeoutId = null;
-                    }, delay - elapsedTime);
+                    // 创建时间和更新时间
+                    params.create_time = new Date().toLocaleString();
+                    params.update_time = new Date().toLocaleString()
+                    this.tableData.push(params);
                 }
-            };
-        }
 
-        /*监听属性代码是否可用*/
-        const debounceProgressAttributeCode = debounce((e) => {
-            let search = $(e.target).val()
-            let name = $('#progress-attribute-name').val()
-            let stepHelper = $('a[class="nav-link active"]')
-            stepHelper.find('.help-block').remove()
-            stepHelper.append(`<span class="help-block">
-                                            ${__('你选择了')}
-                                            <span class="text-primary">${search}(${name})</span>
-                                        </span>`)
-            $.ajax({
-                url: '@backend-url("*/backend/attribute/search")?field=code&limit=1&search=' + search +
-                    '&entity_id=' + getEntityId() + '&set_id=' + getSetId() + '&group_id=' + getGroupId(),
-                success: function (res) {
-                    if (res['msg']) {
-                        Swal.fire(
-                            {
-                                title: '警告！',
-                                text: res['msg'],
-                                icon: 'error',
-                                dangerMode: true,
-                                confirmButtonText: '@lang{好的}'
-                            }
-                        )
-                        return false;
-                    }
-                    let items = res['items']
-                    let attribute_id_input = $('#progress-attribute-code')
-                    if (items.length) {
-                        attribute_id_input.removeClass('border-success')
-                        attribute_id_input.addClass('border-danger')
-                    } else {
-                        attribute_id_input.removeClass('border-danger')
-                        attribute_id_input.addClass('border-success')
-                    }
-                }
-            })
-        }, 500);
-        $('#progress-attribute-code').on('input', debounceProgressAttributeCode)
-        /*监听属性名称是否可用*/
-        const debounceProgressAttributeName = debounce((e) => {
-            let search = $(e.target).val()
-            let code = $('#progress-attribute-code').val()
-            let stepHelper = $('a[class="nav-link active"]')
-            stepHelper.find('.help-block').remove()
-            stepHelper.append(`<span class="help-block">
-                                            ${__('属性数据')}
-                                            <span class="text-primary">${code}(${search})</span>
-                                        </span>`)
-            $.ajax({
-                url: '@backend-url("*/backend/attribute/search")?field=name&limit=1&search=' + search +
-                    '&entity_id=' + getEntityId() + '&set_id=' + getSetId() + '&group_id=' + getGroupId(),
-                success: function (res) {
-                    if (res['msg']) {
-                        Swal.fire(
-                            {
-                                title: '警告！',
-                                text: res['msg'],
-                                icon: 'error',
-                                dangerMode: true,
-                                confirmButtonText: '@lang{好的}'
-                            }
-                        )
-                        return false;
-                    }
-                    let items = res['items']
-                    let attribute_id_input = $('#progress-attribute-name')
-                    if (items.length) {
-                        attribute_id_input.removeClass('border-success')
-                        attribute_id_input.addClass('border-danger')
-                    } else {
-                        attribute_id_input.removeClass('border-danger')
-                        attribute_id_input.addClass('border-success')
-                    }
-                }
-            })
-        }, 500);
-        $('#progress-attribute-name').on('input', debounceProgressAttributeName)
+                $('.btn-close').click();
+            },
+            /*实体搜索*/
+            renderSearchEntities(e) {
 
-        // 选择切换配置项时 调整 progress-submit
-        let changeOptionConfig = $('#validationOption')
-        changeOptionConfig.change((e) => {
-            // 获取当前选中的值
-            var selectedValue = $(e.target).find('option:selected').val();
-            // 如果选中1 说明需要配置配置项
-            let attribute_detail_container = $('#progress-attribute-details')
-            let form = attribute_detail_container.find('form')
-            if (form.get(0).reportValidity()) {
-                if (selectedValue === '1') {
-                    form.find('input[name="progress"]').val('progress-attribute-details')
-                    form.find('input[name="next_progress"]').val('progress-attribute-option')
-                }
-                form.submit()
-            }
-        })
-
-        // 添加配置项按钮
-        //show.bs.offcanvas
-        let offcanvasButtonOptionAdd = $('#offcanvasButtonOptionAdd')
-        offcanvasButtonOptionAdd.on('show.bs.offcanvas', function () {
-            let entity_id = $('#search-entity-result option:selected').val()
-            if (!entity_id) {
-                Swal.fire({
-                    title: '@lang{请先选择实体再操作！}',
-                    text: '@lang{当前实体为空！无法创建属性配置项！}',
-                    icon: 'warning',
-                    confirmButtonText: '@lang{好的}'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // 跳转实体选择步骤
-                        console.log('跳转实体选择步骤')
-                        $('#progress-wizard').find('a[href="#progress-select-entity"]').tab('show')
+                $.ajax({
+                    url: '@backend-url("*/backend/entity/search")?search=' + this.EntitiesVal,
+                    success: (res) => {
+                        this.entities = res['items'];
+                        this.EntitiesVal = '';
                     }
                 })
-                return false
-            }
-            let attribute_id = $('#progress-attribute-code').val()
-            if (!attribute_id) {
-                Swal.fire({
-                    title: '@lang{请先创建属性再操作！}',
-                    text: '@lang{当前属性代码为空！无法创建属性配置项！}',
-                    icon: 'warning',
-                    confirmButtonText: '@lang{好的}'
-                }).then((result) => {
-                    console.log(result)
-                    if (result.isConfirmed) {
-                        // 跳转属性创建步骤
-                        $('#progress-wizard').find('a[href="#progress-attribute-details"]').tab('show')
+            },
+
+            /* 实体属性集搜索 */
+            renderSearchEntityAttributeSet(e) {
+                $.ajax({
+                    url: '@backend-url("*/backend/attribute/set/search")?search=' + this.entityGroup + '&entity_id=' +
+                        this.params.entity_id,
+                    success: (res) => {
+                        if (res['msg']) {
+                            Swal.fire({
+                                title: '警告！',
+                                text: res['msg'],
+                                icon: 'error',
+                                dangerMode: true,
+                                confirmButtonText: '@lang{好的}'
+                            })
+                            return false;
+                        }
+                        this.sets = res['items'];
+                        this.entityGroup = '';
                     }
                 })
-                return false
-            }
-        })
-        /*监听配置项代码和名称*/
-        const value = $('#value')
-        const debounceProgressAttributeOptionName = debounce((e) => {
-            let search = $(e.target).val()
-            let attribute_id = $('#progress-attribute-code').val()
-            let stepHelper = $('a[class="nav-link active"]')
-            stepHelper.find('.help-block').remove()
-            stepHelper.append(`<span class="help-block">
-                                            ${__('属性数据')}
-                                            <span class="text-primary">${attribute_id}(${search})</span>
-                                        </span>`)
-            $.ajax({
-                url: '@backend-url("*/backend/attribute/option/search")?field=value&limit=1&search=' + search +
-                    '&entity_id=' + getEntityId() + '&attribute_id=' + getAttributeID(),
-                success: function (res) {
-                    if (res['msg']) {
-                        Swal.fire(
-                            {
+            },
+
+            /* 实体属性集属性组 */
+            renderSearchEntityAttributeSetGroup(e) {
+                $.ajax({
+                    url: '@backend-url("*/backend/attribute/group/search")?search=' + this.entityNameGroup +
+                        '&entity_id=' + this.params.entity_id + '&set_id=' + this.params.set_id,
+                    success: (res) => {
+                        if (res['msg']) {
+                            Swal.fire({
                                 title: '警告！',
                                 text: res['msg'],
                                 icon: 'error',
                                 dangerMode: true,
                                 confirmButtonText: '@lang{好的}'
-                            }
-                        )
-                        return false;
+                            })
+                            return false;
+                        }
+                        this.groups = res['items'];
+                        this.entityNameGroup = '';
                     }
-                    let items = res['items']
-                    console.log(res)
-                    if (items.length) {
-                        value.removeClass('border-success')
-                        value.addClass('border-danger')
-                    } else {
-                        value.removeClass('border-danger')
-                        value.addClass('border-success')
-                        // 将name转换成英文作为配置项代码
-                        let option_name = value.val()
-                        let option_code = option_name.replace(/[^\w\s]/gi, '').toLowerCase().replace(/\s/gi, '_')
-                        $('#code').val(option_code)
+                })
+            },
+            //查找label
+            findLabel(arr, id, key, name) {
+                let label = '';
+                arr.forEach((item) => {
+                    if (item[key] == id) {
+                        label = item[name]
                     }
+                })
+                return label
+            },
+            //     改变属性类型
+            changeType(arr, id) {
+                let find_item = {}
+                arr.forEach((item) => {
+                    if (item.type_id == Number(id)) {
+                        this.params.has_option = item.is_swatch;
+                        this.stopable = item.is_swatch;
+                        find_item = item;
+                    }
+                });
+                this.debounceSaveType(find_item);
+                this.activeAttrItem = find_item;
+                console.log(find_item)
+            },
+            changeNav(name) {
+                this.activeName = name;
+                console.log(this.activeName)
+                if (this.params.entity_id) {
+                    this.renderSearchEntityAttributeSet();
                 }
-            })
-        }, 500);
-        value.on('input', debounceProgressAttributeOptionName)
-
-        // 代码监听
-        const code = $('#code')
-        const debounceProgressAttributeOptionCode = debounce((e) => {
-            let search = $(e.target).val()
-            let attribute_id = $('#progress-attribute-code').val()
-            let stepHelper = $('a[class="nav-link active"]')
-            stepHelper.find('.help-block').remove()
-            stepHelper.append(`<span class="help-block">
-                                            ${__('属性数据')}
-                                            <span class="text-primary">${attribute_id}(${search})</span>
-                                        </span>`)
-            $.ajax({
-                url: '@backend-url("*/backend/attribute/option/search")?field=code&limit=1&search=' + search +
-                    '&entity_id=' + getEntityId() + '&attribute_id=' + getAttributeId(),
-                success: function (res) {
-                    if (res['msg']) {
-                        Swal.fire(
-                            {
-                                title: '警告！',
-                                text: res['msg'],
-                                icon: 'error',
-                                dangerMode: true,
-                                confirmButtonText: '@lang{好的}'
-                            }
-                        )
-                        return false;
-                    }
-                    let items = res['items']
-                    console.log(res)
-                    if (items.length) {
-                        code.removeClass('border-success')
-                        code.addClass('border-danger')
-                    } else {
-                        code.removeClass('border-danger')
-                        code.addClass('border-success')
-                        // 将name转换成英文作为配置项代码
-                        let option_name = code.val()
-                        let option_code = option_name.replace(/[^\w\s]/gi, '').toLowerCase().replace(/\s/gi, '_')
-                        $('#code').val(option_code)
-                    }
+                if (this.params.set_id) {
+                    this.renderSearchEntityAttributeSetGroup();
                 }
-            })
-        }, 500);
-        code.on('input', debounceProgressAttributeOptionCode)
-
-        /*监听配置项删除*/
-        let option_item = $('#attribute-options .option-item')
-        option_item.find('a.delete').on('click', (e) => {
-            let target = $(e.currentTarget)
-            target.attr('data-init', 1)
-            let parent = target.parent().parent()
-            let option_id = parent.attr('data-id')
-            console.log(target.parent())
-            let code = parent.find("td[data-field='code']").text()
-            parent.remove()
-            $.ajax({
-                url: '@backend-url("*/backend/attribute/add")?isAjax=1',
-                type: 'POST',
-                data: {option_id: option_id, code: code, progress: 'progress-attribute-option-log-delete'}
-            })
-        })
-        renderEditTable();
+            },
+        },
     })
-
-    // 渲染可编辑表格
-    function renderEditTable() {
-        let editTable = $('.table-edits tr')
-        editTable.off()
-        var pickers = {};
-        editTable.editable({
-            /*dropdowns: {
-                gender: ['Male', 'Female']
-            },*/
-            edit: function (values) {
-                $('.edit i', this)
-                    .removeClass('fa-pencil-alt')
-                    .addClass('fa-save')
-                    .attr('title', '@lang{保存}');
-            },
-            save: function (values) {
-                // 直接
-                $('.edit i', this)
-                    .removeClass('fa-save')
-                    .addClass('fa-pencil-alt')
-                    .attr('title', '@lang{编辑}');
-
-                if (this in pickers) {
-                    pickers[this].destroy();
-                    delete pickers[this];
-                }
-            },
-            cancel: function (values) {
-                $('.edit i', this)
-                    .removeClass('fa-save')
-                    .addClass('fa-pencil-alt')
-                    .attr('title', '@lang{编辑}');
-
-                if (this in pickers) {
-                    pickers[this].destroy();
-                    delete pickers[this];
-                }
-            }
-        });
-    }
-
 </script>
+<w:data-field url="@backend-url('backend/user-data')" container-id="product" event="input change click"/>
 </body>
+
 </html>

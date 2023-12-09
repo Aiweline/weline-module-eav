@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /*
@@ -22,10 +23,15 @@ use Weline\Framework\Setup\Db\ModelSetup;
 
 class Value extends \Weline\Framework\Database\Model
 {
-    public const fields_ID        = 'value_id';
-    public const fields_attribute = 'attribute';
+    public const fields_ID = 'value_id';
+    public const fields_attribute_id = 'attribute_id';
+    public const fields_attribute_code = 'attribute_code';
     public const fields_entity_id = 'entity_id';
-    public const fields_value     = 'value';
+    public const fields_value = 'value';
+    public const fields_swatch_image = 'has_image';
+    public const fields_image = 'image';
+
+    public array $_index_sort_keys = [self::fields_attribute_id, self::fields_entity_id, self::fields_attribute_code];
 
     private ?EavAttribute $attribute = null;
 
@@ -48,7 +54,8 @@ class Value extends \Weline\Framework\Database\Model
             throw new Exception(__('属性不存在！'));
         }
         $this->attribute = $attribute;
-        $this->setData(self::fields_attribute, $attribute->getCode());
+        $this->setData(self::fields_attribute_id, $attribute->getId());
+        $this->setData(self::fields_attribute_code, $attribute->getCode());
         $this->getTable();
         return $this;
     }
@@ -67,17 +74,22 @@ class Value extends \Weline\Framework\Database\Model
      */
     public function setAttributeCode(string $code): static
     {
-        $this->setData(self::fields_attribute, $code);
+        $this->setData(self::fields_attribute_code, $code);
         return $this;
     }
 
-    function getAttribute()
+    public function getAttribute()
     {
         if ($this->attribute) {
             return $this->attribute;
         }
         $this->attribute = ObjectManager::getInstance(EavAttribute::class);
-        return $this->attribute->load($this->getData(self::fields_attribute));
+        return $this->attribute->load($this->getAttributeId());
+    }
+
+    public function getAttributeId(): int
+    {
+        return $this->getData(self::fields_attribute_id) ?: 0;
     }
 
     public function getTable(string $table = ''): string
@@ -88,7 +100,7 @@ class Value extends \Weline\Framework\Database\Model
         if (!$this->attribute) {
             throw new Exception(__('属性不存在！'));
         }
-        $table                   = 'eav_' . $this->attribute->current_getEntity()->getEntityCode() . '_' . $this->attribute->getTypeModel()->getCode();
+        $table = 'eav_' . $this->attribute->current_getEntity()->getEntityCode() . '_' . $this->attribute->getTypeModel()->getCode();
         $this->origin_table_name = parent::getTable($table);
         return $this->origin_table_name;
     }
@@ -123,7 +135,7 @@ class Value extends \Weline\Framework\Database\Model
         /**@var \Weline\Eav\Model\EavAttribute\Type $type */
         $type = ObjectManager::getInstance(\Weline\Eav\Model\EavAttribute\Type::class);
 
-        $types    = $type->select()->fetch()->getItems();
+        $types = $type->select()->fetch()->getItems();
         $entities = $entity->clear()->select()->fetch()->getItems();
         /**@var EavEntity $entity */
         foreach ($entities as $entity) {
@@ -132,63 +144,152 @@ class Value extends \Weline\Framework\Database\Model
                 $eav_entity_type_table = $setup->getTable('eav_' . $entity->getCode() . '_' . $type->getCode());
                 $setup->dropTable($eav_entity_type_table);
                 if (!$setup->tableExist($eav_entity_type_table)) {
-                    $setup->createTable('实体' . $entity->getCode() . '的Eav模型' . $type->getCode() . '类型数据表', $eav_entity_type_table)
-                          ->addColumn(
-                              self::fields_attribute,
-                              TableInterface::column_type_VARCHAR,
-                              60,
-                              'not null ',
-                              '属性'
-                          )
-                          ->addColumn(
-                              self::fields_entity_id,
-                              $entity->getEntityIdFieldType(),
-                              $entity->getEntityIdFieldLength(),
-                              'not null',
-                              '实体ID'
-                          )
-                          ->addColumn(
-                              self::fields_value,
-                              $type->getFieldType(),
-                              $type->getFieldLength(),
-                              'not null',
-                              '实体值'
-                          )
-                          ->addConstraints('primary key(`' . self::fields_attribute . '`,`' . self::fields_entity_id . '`,`'
-                                           . self::fields_value . '`)')
-                          ->create();
+                    $table = $setup->createTable('实体' . $entity->getCode() . '的Eav模型' . $type->getCode() . '类型数据表', $eav_entity_type_table);
+                    $table->addColumn(
+                        self::fields_attribute_code,
+                        TableInterface::column_type_VARCHAR,
+                        60,
+                        'not null ',
+                        '属性代码'
+                    )->addColumn(
+                        self::fields_attribute_id,
+                        TableInterface::column_type_INTEGER,
+                        11,
+                        'not null',
+                        '属性ID'
+                    )
+                        ->addColumn(
+                            self::fields_entity_id,
+                            $entity->getEntityIdFieldType(),
+                            $entity->getEntityIdFieldLength(),
+                            'not null',
+                            '实体ID'
+                        )
+                        ->addColumn(
+                            self::fields_value,
+                            $type->getFieldType(),
+                            $type->getFieldLength(),
+                            'not null',
+                            '实体值'
+                        );
+                    if ($type->getIsSwatch()) {
+                        $table->addColumn($type::fields_is_swatch, TableInterface::column_type_BOOLEAN, 0, 'default 0', '是否有样本');
+                        if ($type->hasSwatchImage()) {
+                            $table->addColumn($type::fields_swatch_image, TableInterface::column_type_VARCHAR, 255, '', '样本图片');
+                        }
+                        if ($type->hasSwatchColor()) {
+                            $table->addColumn($type::fields_swatch_color, TableInterface::column_type_VARCHAR, 255, '', '样本颜色');
+                        }
+                        if ($type->hasSwatchText()) {
+                            $table->addColumn($type::fields_swatch_text, TableInterface::column_type_VARCHAR, 255, '', '样本文本');
+                        }
+                    }
+                    $table
+                        ->addIndex(TableInterface::index_type_KEY, 'EAV_ATTRIBUTE_ID', 'attribute_id')
+                        ->addIndex(TableInterface::index_type_KEY, 'EAV_ATTRIBUTE_CODE', 'attribute_code')
+                        ->addIndex(TableInterface::index_type_KEY, 'EAV_ENTITY_ID', 'entity_id')
+                        ->addConstraints('primary key(`' . self::fields_attribute_id . '`,`' . self::fields_entity_id . '`,`'
+                            . self::fields_value . '`)')
+                        ->create();
                 }
             }
         }
     }
 
-    function setValueId(int $value_id): static
+    public function setValueId(int $value_id): static
     {
         return $this->setData(self::fields_ID, $value_id);
     }
 
-    function getValueId(): int
+    public function getValueId(): int
     {
         return intval($this->getData(self::fields_ID));
     }
 
-    function setEntityId(string|int $id): static
+    public function setEntityId(string|int $id): static
     {
         return $this->setData(self::fields_entity_id, $id);
     }
 
-    function getEntityId(): int|string
+    public function getEntityId(): int|string
     {
         return $this->getData(self::fields_entity_id);
     }
 
-    function setValue(string|int $value): static
+    public function setValue(string|int $value): static
     {
         return $this->setData(self::fields_value, $value);
     }
 
-    function getValue(): string|int
+    public function getValue(): string|int
     {
         return $this->getData(self::fields_value);
+    }
+
+    public function getSwatchValues(): array
+    {
+        return [
+            'is_swatch' => $this->getIsSwatch(),
+            'swatch_image' => $this->getSwatchImage(),
+            'swatch_color' => $this->getSwatchColor(),
+            'swatch_text' => $this->getSwatchText(),
+        ];
+    }
+
+    public function getIsSwatch(): bool
+    {
+        return $this->getData(EavAttribute\Type::fields_is_swatch) ? true : false;
+    }
+
+
+    public function setIsSwatch(bool $is_swatch): static
+    {
+        if (!$this->getIsSwatch()) {
+            throw new Exception(__('此属性没有样本，无法为属性值设置样本！'));
+        }
+        return $this->setData(EavAttribute\Type::fields_is_swatch, $is_swatch);
+    }
+
+    public function getSwatchImage(): string
+    {
+        return $this->getData(EavAttribute\Type::fields_swatch_image) ?? '';
+    }
+
+
+    public function setSwatchImage(string $swatch_iamge): static
+    {
+        $this->checkSwatchType();
+        return $this->setData(EavAttribute\Type::fields_swatch_image, $swatch_iamge);
+    }
+
+    public function getSwatchColor(): string
+    {
+        return $this->getData(EavAttribute\Type::fields_swatch_color) ?? '';
+    }
+
+
+    public function setSwatchColor(string $swatch_color): static
+    {
+        $this->checkSwatchType();
+        return $this->setData(EavAttribute\Type::fields_swatch_color, $swatch_color);
+    }
+
+    public function getSwatchText(): string
+    {
+        return $this->getData(EavAttribute\Type::fields_swatch_text) ?? '';
+    }
+
+
+    public function setSwatchText(string $swatch_text): static
+    {
+        $this->checkSwatchType();
+        return $this->setData(EavAttribute\Type::fields_swatch_text, $swatch_text);
+    }
+
+    private function checkSwatchType()
+    {
+        if (!$this->getIsSwatch()) {
+            throw new Exception(__('此属性没有样本，无法为属性值设置样本！'));
+        }
     }
 }
