@@ -346,7 +346,7 @@ abstract class EavModel extends Model implements EavInterface
     {
         /**@var Model\EavAttribute\Group $group */
         $group = ObjectManager::getInstance(EavAttribute\Group::class);
-        $group->where('mian_table.'.EavAttribute\Group::fields_entity_id, $this->eav_Entity()->getId());
+        $group->where('main_table.'.EavAttribute\Group::fields_entity_id, $this->eav_Entity()->getId());
         return $group;
     }
     /**
