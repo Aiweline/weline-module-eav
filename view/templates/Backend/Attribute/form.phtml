@@ -602,24 +602,24 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
                             <div class="modal-dialog modal-fullscreen">
                                 <div class="modal-content">
                                     <div class="modal-header">
-                                        <h5 id="chooseImgModelLabel" class="modal-title">图片选择器 <span
-                                                    class="text-danger">（双击选中图片）</span></h5>
+                                        <h5 id="chooseImgModelLabel" class="modal-title"><lang>图片选择器</lang> <span
+                                                    class="text-danger"><lang>（双击选中图片）最大支持100kb</lang></span></h5>
                                         <button type="button" data-bs-dismiss="modal" aria-label="Close"
                                                 class="btn-close"></button>
                                     </div>
                                     <div class="modal-body">
                                         <iframe class="w-100 h-100"
-                                                src="@backend-url('/elfinder/backend/connector/manager?s=admin_123%2Fshop-store%2Fbackend%2Fstore%2Fedit&id=7&isIframe=1&targetElement=callBackImg&startPath=store%2Flogo&multi=0&ext=png%2Cjpeg%2Cjpg%2Cwebp%2Csvg%2Cico&size=102400#elf_l1_XA')"
+                                                src="@file-manager-connector{target='#callBackImg' close='#closeImgModel' path='media/store/logo/' multi='0' ext='png,jpeg,jpg,webp,svg,ico' size='102400'}"
                                                 frameborder="0"></iframe>
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary waves-effect"
                                                 @click="closeImgModel">
-                                            关闭
+                                            <lang>关闭</lang>
                                         </button>
-                                        <button type="button" data-bs-dismiss="modal"
+                                        <button type="button" data-bs-dismiss="modal" id="closeImgModel"
                                                 class="btn btn-primary waves-effect waves-light" @click="closeImgModel">
-                                            确定
+                                            <lang>确定</lang>
                                         </button>
                                     </div>
                                 </div>
@@ -628,8 +628,8 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
 
                     </div>
 
-                    <div v-if="(activeName=='progress-attribute-details'&&!this.params.has_option)||activeName=='progress-attribute-option'">
-                        <button class="btn btn-primary pull-right" @click="submitAttr">提交</button>
+                    <div v-if="(activeName=='progress-attribute-details'&&params.has_option!=1)||activeName=='progress-attribute-option'">
+                        <button class="btn btn-primary pull-right" @click="submitAttr"><lang>提交</lang></button>
                     </div>
                 </div>
 
@@ -821,7 +821,7 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
                     })
                     return false
                 }
-                console.log(this.params, '获取已填写数据', this.tableData, '第5部分的数据')
+                console.log(this.params, '@lang{获取已填写数据}', this.tableData, '@lang{第5部分的数据}')
                 $.ajax({
                     type: 'POST',
                     url: "@backend-url('*/backend/attribute/save')",
