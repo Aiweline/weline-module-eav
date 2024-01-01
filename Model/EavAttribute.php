@@ -339,8 +339,8 @@ class EavAttribute extends \Weline\Framework\Database\Model
             $valueModel->setAttribute($this);
             $attribute->clearQuery()
                 ->fields('main_table.code,main_table.entity_id,main_table.name,main_table.type_id,v.value')
-                ->where($attribute::fields_entity_id, $attribute->getEntity())
-                ->where($attribute::fields_code, $attribute->getCode());
+                ->where('main_table.'.$attribute::fields_entity_id, $attribute->getEntity())
+                ->where('main_table.'.$attribute::fields_code, $attribute->getCode());
             $attribute->joinModel(
                 $valueModel,
                 'v',
@@ -449,16 +449,16 @@ class EavAttribute extends \Weline\Framework\Database\Model
     public function setValue(string|int $entity_id, \Weline\Eav\Model\EavAttribute\Type\Value|array|string|int $value): static
     {
         if (is_string($value) || is_int($value)) {
-            $this->w_getValueModel()->where(['entity_id' => $entity_id, 'attribute' => $this->getCode()])->delete();
-            $this->w_getValueModel()->insert(['entity_id' => $entity_id, 'attribute' => $this->getCode(), 'value' => $value])->fetch();
+            $this->w_getValueModel()->where(['entity_id' => $entity_id, 'attribute_id' => $this->getCode()])->delete();
+            $this->w_getValueModel()->insert(['entity_id' => $entity_id, 'attribute_id' => $this->getCode(), 'value' => $value])->fetch();
         } elseif (is_array($value)) {
             if (!$this->getMultipleValued() && (count($value) > 1)) {
                 throw new Exception(__('单值属性只能接收一个值！当前值：%1', w_var_export($value, true)));
             }
-            $this->w_getValueModel()->where(['entity_id' => $entity_id, 'attribute' => $this->getCode()])->delete();
+            $this->w_getValueModel()->where(['entity_id' => $entity_id, 'attribute_id' => $this->getCode()])->delete();
             $data = [];
             foreach ($value as $item) {
-                $data[] = ['entity_id' => $entity_id, 'value' => $item, 'attribute' => $this->getCode()];
+                $data[] = ['entity_id' => $entity_id, 'value' => $item, 'attribute_id' => $this->getCode()];
             }
             $this->w_getValueModel()->insert($data)->fetch();
         } elseif ($value instanceof Value) {
@@ -511,6 +511,46 @@ class EavAttribute extends \Weline\Framework\Database\Model
         $optionModel = ObjectManager::getInstance(\Weline\Eav\Model\EavAttribute\Option::class);
         return $optionModel->where($optionModel::fields_attribute_id, $this->getId())
             ->where($optionModel::fields_entity_id, $this->getEntityCode());
+    }
+
+    public function getGroupId(): int
+    {
+        return (int)$this->getData(self::fields_group_id);
+    }
+
+    public function setGroupId(int $groupId): static
+    {
+        $this->setData(self::fields_group_id, $groupId);
+        return $this;
+    }
+
+    public function getSetId(): int
+    {
+        return (int)$this->getData(self::fields_set_id);
+    }
+
+    public function setSetId(int $setId): static
+    {
+        $this->setData(self::fields_set_id, $setId);
+        return $this;
+    }
+
+    public function setEntityCode(string $entityCode): static
+    {
+        $this->setData(self::fields_entity_code, $entityCode);
+        return $this;
+    }
+
+    public function setEntityId(int $entityId): static
+    {
+        $this->setData(self::fields_entity_id, $entityId);
+        return $this;
+    }
+
+    public function setAttributeId(int $attributeId): static
+    {
+        $this->setData(self::fields_attribute_id, $attributeId);
+        return $this;
     }
 
     // 不安全，容易删除属性所有数据
