@@ -339,8 +339,8 @@ class EavAttribute extends \Weline\Framework\Database\Model
             $valueModel->setAttribute($this);
             $attribute->clearQuery()
                 ->fields('main_table.code,main_table.entity_id,main_table.name,main_table.type_id,v.value')
-                ->where('main_table.'.$attribute::fields_entity_id, $attribute->getEntity())
-                ->where('main_table.'.$attribute::fields_code, $attribute->getCode());
+                ->where('main_table.' . $attribute::fields_entity_id, $attribute->getEntity())
+                ->where('main_table.' . $attribute::fields_code, $attribute->getCode());
             $attribute->joinModel(
                 $valueModel,
                 'v',
@@ -446,34 +446,89 @@ class EavAttribute extends \Weline\Framework\Database\Model
      * @throws \Weline\Framework\App\Exception
      * @throws \Weline\Framework\Exception\Core
      */
-    public function setValue(string|int $entity_id, \Weline\Eav\Model\EavAttribute\Type\Value|array|string|int $value): static
+    public function setValue(string|int $entity_id, \Weline\Eav\Model\EavAttribute\Type\Value|array|string|int $value, string $swatch_image = '', string $swatch_color = '', string $swatch_text = ''): static
     {
+        if ($value instanceof Value) {
+            $value->save(true);
+            return $this;
+        }
+
         if (is_string($value) || is_int($value)) {
-            $this->w_getValueModel()->where(['entity_id' => $entity_id, 'attribute_id' => $this->getCode()])->delete();
-            $this->w_getValueModel()->insert(['entity_id' => $entity_id, 'attribute_id' => $this->getCode(), 'value' => $value])->fetch();
+            $valueModel = $this->w_getValueModel();
+            $data = ['entity_id' => $entity_id, 'attribute_id' => $this->getId(),
+                'value' => $value];
+            $bindFieldsData = [];
+            if($swatch_image){
+                $bindFieldsData['swatch_image'] = $swatch_image;
+            }
+            if($swatch_color){
+                $bindFieldsData['swatch_color'] = $swatch_color;
+            }
+            if($swatch_text){
+                $bindFieldsData['swatch_text'] = $swatch_text;
+            }
+            if($bindFieldsData) {
+                $bindFieldsData['is_swatch'] = 1;
+                $data = array_merge($data, $bindFieldsData);
+            }
+            try {
+                $valueModel->insert($data)->fetch();
+            }catch (\Throwable $e) {
+                throw new Exception(__('属性值保存失败！信息：%1', $e->getMessage()));
+            }
         } elseif (is_array($value)) {
             if (!$this->getMultipleValued() && (count($value) > 1)) {
                 throw new Exception(__('单值属性只能接收一个值！当前值：%1', w_var_export($value, true)));
             }
-            $this->w_getValueModel()->where(['entity_id' => $entity_id, 'attribute_id' => $this->getCode()])->delete();
+            $valueModel = $this->w_getValueModel();
+            $valueModel->where(['entity_id' => $entity_id, 'attribute_id' => $this->getId()])->delete();
             $data = [];
+            $bindFieldsData = [];
             foreach ($value as $item) {
-                $data[] = ['entity_id' => $entity_id, 'value' => $item, 'attribute_id' => $this->getCode()];
+                $data_tmp = ['entity_id' => $entity_id, 'value' => $item, 'attribute_id' => $this->getId()];
+                if(isset($item['swatch_image'])) {
+                    $bindFieldsData['swatch_image'] = $swatch_image;
+                }
+                if(isset($item['swatch_color'])) {
+                    $bindFieldsData['swatch_color'] = $swatch_color;
+                }
+                if(isset($item['swatch_text'])){
+                    $bindFieldsData['swatch_text'] = $swatch_text;
+                }
+                if($bindFieldsData) {
+                    $data_tmp['is_swatch'] = 1;
+                    $data_tmp = array_merge($data_tmp, $bindFieldsData);
+                }
+                $data[] = $data_tmp;
             }
-            $this->w_getValueModel()->insert($data)->fetch();
-        } elseif ($value instanceof Value) {
-            $value->save(true);
+            if($bindFieldsData){
+                $valueModel->bindModelFields(array_keys($bindFieldsData));
+            }
+            try {
+                $valueModel->insert($data)->fetch();
+            }catch (\Throwable $e) {
+                throw new Exception(__('属性值保存失败！信息：%1', $e->getMessage()));
+            }
         }
         return $this;
     }
 
-    public function addValue(string|int $entity_id, array|string|int $value): bool
+    public function addValue(string|int $entity_id, array|string|int $value, string $swatch_image = '', string $swatch_color = '', string $swatch_text = ''): bool
     {
         if (!$this->getMultipleValued()) {
             if (is_string($value) || is_int($value)) {
-                $this->w_getValueModel()
-                    ->setEntityId($entity_id)
-                    ->setValue($value);
+                $valueModel = $this->w_getValueModel();
+                if (!empty($item['swatch_image'])) {
+                    $valueModel->setSwatchImage($item['swatch_image']);
+                }
+                if (!empty($item['swatch_color'])) {
+                    $valueModel->setSwatchImage($item['swatch_color']);
+                }
+                if (!empty($item['swatch_text'])) {
+                    $valueModel->setSwatchImage($item['swatch_text']);
+                }
+                $valueModel->setEntityId($entity_id)
+                    ->setValue($value)->save();
                 return true;
             } else {
                 if (DEV) {
@@ -490,9 +545,19 @@ class EavAttribute extends \Weline\Framework\Database\Model
                     throw new Exception(__('不接受除string和int以外的值！'));
                 }
             }
-            $this->w_getValueModel()
+            $valueModel = $this->w_getValueModel();
+            if (!empty($item['swatch_image'])) {
+                $valueModel->setSwatchImage($item['swatch_image']);
+            }
+            if (!empty($item['swatch_color'])) {
+                $valueModel->setSwatchImage($item['swatch_color']);
+            }
+            if (!empty($item['swatch_text'])) {
+                $valueModel->setSwatchImage($item['swatch_text']);
+            }
+            $valueModel
                 ->setEntityId($entity_id)
-                ->setValue($item);
+                ->setValue($item)->save();
         }
         return true;
     }
