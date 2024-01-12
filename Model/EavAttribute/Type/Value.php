@@ -27,6 +27,7 @@ class Value extends \Weline\Framework\Database\Model
     public const fields_attribute_id = 'attribute_id';
     public const fields_entity_id    = 'entity_id';
     public const fields_value        = 'value';
+//    public const fields_is_swatch   = 'is_swatch';
 //    public const fields_swatch_image   = 'swatch_image';
 //    public const fields_swatch_color   = 'swatch_color';
 //    public const fields_swatch_text    = 'swatch_text';
