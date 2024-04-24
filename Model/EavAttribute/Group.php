@@ -98,22 +98,22 @@ class Group extends \Weline\Framework\Database\Model
         return $this->setData(self::fields_code, $code);
     }
 
-    function getSetCode()
+    function getSetId()
     {
         return $this->getData(self::fields_set_id);
     }
 
-    function setSetCode(string $set_id): Group
+    function setSetId(int $set_id): Group
     {
         return $this->setData(self::fields_set_id, $set_id);
     }
 
-    function getEntityCode()
+    function getEntityId()
     {
         return $this->getData(self::fields_entity_id);
     }
 
-    function setEntityCode(string $entity_id): Group
+    function setEntityId(int $entity_id): Group
     {
         return $this->setData(self::fields_entity_id, $entity_id);
     }
