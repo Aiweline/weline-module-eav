@@ -13,7 +13,12 @@ declare(strict_types=1);
 
 namespace Weline\Eav\Model\EavAttribute;
 
+use Weline\Eav\EavModelInterface;
 use Weline\Eav\Model\EavAttribute;
+use Weline\Eav\Ui\EavModel\Select\File;
+use Weline\Eav\Ui\EavModel\Select\Site;
+use Weline\Eav\Ui\EavModel\Select\YesNo;
+use Weline\Framework\App\Exception;
 use Weline\Framework\Database\Api\Db\Ddl\TableInterface;
 use Weline\Framework\Manager\ObjectManager;
 use Weline\Framework\Setup\Data\Context;
@@ -21,18 +26,22 @@ use Weline\Framework\Setup\Db\ModelSetup;
 
 class Type extends \Weline\Framework\Database\Model
 {
-    public const fields_ID             = 'type_id';
-    public const fields_type_id        = 'type_id';
-    public const fields_code           = 'code';
-    public const fields_name           = 'name';
-    public const fields_is_swatch      = 'is_swatch';
-    public const fields_swatch_image   = 'swatch_image';
-    public const fields_swatch_color   = 'swatch_color';
-    public const fields_swatch_text    = 'swatch_text';
+    public const fields_ID = 'type_id';
+    public const fields_type_id = 'type_id';
+    public const fields_code = 'code';
+    public const fields_name = 'name';
+    public const fields_is_swatch = 'is_swatch';
+    public const fields_swatch_image = 'swatch_image';
+    public const fields_swatch_color = 'swatch_color';
+    public const fields_swatch_text = 'swatch_text';
     public const fields_frontend_attrs = 'frontend_attrs';
-    public const fields_required       = 'required';
-    public const fields_field_type     = 'field_type';
-    public const fields_field_length   = 'field_length';
+    public const fields_model_class = 'model_class';
+    public const fields_model_class_data = 'model_class_data';
+    public const fields_element = 'element';
+    public const fields_default_value = 'default_value';
+    public const fields_required = 'required';
+    public const fields_field_type = 'field_type';
+    public const fields_field_length = 'field_length';
     public array $_unit_primary_keys = ['type_id'];
     public array $_index_sort_keys = ['type_id'];
 
@@ -57,7 +66,7 @@ class Type extends \Weline\Framework\Database\Model
      */
     public function install(ModelSetup $setup, Context $context): void
     {
-//                $setup->dropTable();
+//        $setup->dropTable();
         if (!$setup->tableExist()) {
             $setup->createTable('属性类型表')
                 ->addColumn(
@@ -80,6 +89,34 @@ class Type extends \Weline\Framework\Database\Model
                     255,
                     'not null',
                     '类型名'
+                )
+                ->addColumn(
+                    self::fields_element,
+                    TableInterface::column_type_VARCHAR,
+                    60,
+                    "default 'input'",
+                    '类型元素'
+                )
+                ->addColumn(
+                    self::fields_model_class,
+                    TableInterface::column_type_VARCHAR,
+                    255,
+                    "default ''",
+                    '渲染模型名'
+                )
+                ->addColumn(
+                    self::fields_model_class_data,
+                    TableInterface::column_type_MEDIU_TEXT,
+                    0,
+                    "",
+                    '渲染模型内容'
+                )
+                ->addColumn(
+                    self::fields_default_value,
+                    TableInterface::column_type_MEDIU_TEXT,
+                    0,
+                    "",
+                    '默认值'
                 )
                 ->addColumn(
                     self::fields_is_swatch,
@@ -150,6 +187,11 @@ class Type extends \Weline\Framework\Database\Model
                         self::fields_swatch_image => 0,
                         self::fields_swatch_color => 0,
                         self::fields_swatch_text => 0,
+                        self::fields_element => 'input',
+                        self::fields_model_class => '',
+                        self::fields_model_class_data => '',
+                        self::fields_required => 1,
+                        self::fields_default_value => '',
                         self::fields_name => '字符串输入（60字节）',
                     ],
                     [
@@ -161,6 +203,11 @@ class Type extends \Weline\Framework\Database\Model
                         self::fields_swatch_image => 0,
                         self::fields_swatch_color => 0,
                         self::fields_swatch_text => 0,
+                        self::fields_element => 'input',
+                        self::fields_model_class => '',
+                        self::fields_model_class_data => '',
+                        self::fields_required => 1,
+                        self::fields_default_value => '',
                         self::fields_name => '数字输入',
                     ],
                     [
@@ -172,6 +219,11 @@ class Type extends \Weline\Framework\Database\Model
                         self::fields_swatch_image => 0,
                         self::fields_swatch_color => 0,
                         self::fields_swatch_text => 0,
+                        self::fields_element => 'input',
+                        self::fields_model_class => '',
+                        self::fields_model_class_data => '',
+                        self::fields_required => 1,
+                        self::fields_default_value => '',
                         self::fields_name => '布尔值输入',
                     ],
                     [
@@ -183,6 +235,11 @@ class Type extends \Weline\Framework\Database\Model
                         self::fields_swatch_image => 0,
                         self::fields_swatch_color => 0,
                         self::fields_swatch_text => 0,
+                        self::fields_element => 'input',
+                        self::fields_model_class => '',
+                        self::fields_model_class_data => '',
+                        self::fields_required => 1,
+                        self::fields_default_value => '',
                         self::fields_name => '字符串输入（255字节）',
                     ],
                     [
@@ -194,6 +251,11 @@ class Type extends \Weline\Framework\Database\Model
                         self::fields_swatch_image => 0,
                         self::fields_swatch_color => 0,
                         self::fields_swatch_text => 0,
+                        self::fields_element => 'input',
+                        self::fields_model_class => '',
+                        self::fields_model_class_data => '',
+                        self::fields_required => 1,
+                        self::fields_default_value => '',
                         self::fields_name => '字符串输入',
                     ],
                     [
@@ -205,6 +267,11 @@ class Type extends \Weline\Framework\Database\Model
                         self::fields_swatch_image => 1,
                         self::fields_swatch_color => 0,
                         self::fields_swatch_text => 0,
+                        self::fields_element => 'input',
+                        self::fields_model_class => '',
+                        self::fields_model_class_data => '',
+                        self::fields_required => 1,
+                        self::fields_default_value => '',
                         self::fields_name => '字符串输入: 可选图片',
                     ],
                     [
@@ -216,6 +283,11 @@ class Type extends \Weline\Framework\Database\Model
                         self::fields_swatch_image => 0,
                         self::fields_swatch_color => 1,
                         self::fields_swatch_text => 0,
+                        self::fields_element => 'input',
+                        self::fields_model_class => '',
+                        self::fields_model_class_data => '',
+                        self::fields_required => 1,
+                        self::fields_default_value => '',
                         self::fields_name => '字符串输入: 可选颜色',
                     ],
                     [
@@ -227,6 +299,11 @@ class Type extends \Weline\Framework\Database\Model
                         self::fields_swatch_image => 0,
                         self::fields_swatch_color => 0,
                         self::fields_swatch_text => 1,
+                        self::fields_element => 'input',
+                        self::fields_model_class => '',
+                        self::fields_model_class_data => '',
+                        self::fields_required => 1,
+                        self::fields_default_value => '',
                         self::fields_name => '字符串输入: 可选文字',
                     ],
                     [
@@ -238,7 +315,60 @@ class Type extends \Weline\Framework\Database\Model
                         self::fields_swatch_image => 1,
                         self::fields_swatch_color => 1,
                         self::fields_swatch_text => 1,
+                        self::fields_element => 'input',
+                        self::fields_model_class => '',
+                        self::fields_model_class_data => '',
+                        self::fields_required => 1,
+                        self::fields_default_value => '',
                         self::fields_name => '字符串输入: 可选样本',
+                    ],
+                    [
+                        self::fields_code => 'select_yes_no',
+                        self::fields_field_type => TableInterface::column_type_VARCHAR,
+                        self::fields_frontend_attrs => 'type="text" data-parsley-minlength="3" required',
+                        self::fields_field_length => 255,
+                        self::fields_is_swatch => 1,
+                        self::fields_swatch_image => 0,
+                        self::fields_swatch_color => 0,
+                        self::fields_swatch_text => 1,
+                        self::fields_element => 'select',
+                        self::fields_model_class => YesNo::class,
+                        self::fields_model_class_data => json_encode(['1' => '是', '0' => '否']),
+                        self::fields_required => 1,
+                        self::fields_default_value => 1,
+                        self::fields_name => '选择：是/否',
+                    ],
+                    [
+                        self::fields_code => 'select_option',
+                        self::fields_field_type => TableInterface::column_type_VARCHAR,
+                        self::fields_frontend_attrs => 'type="text" data-parsley-minlength="3" required',
+                        self::fields_field_length => 255,
+                        self::fields_is_swatch => 1,
+                        self::fields_swatch_image => 0,
+                        self::fields_swatch_color => 0,
+                        self::fields_swatch_text => 1,
+                        self::fields_element => 'select',
+                        self::fields_model_class => \Weline\Eav\Ui\EavModel\Select\Option::class,
+                        self::fields_model_class_data => json_encode(['1' => '是', '0' => '否']),
+                        self::fields_required => 1,
+                        self::fields_default_value => 1,
+                        self::fields_name => '选择：选项[单选]',
+                    ],
+                    [
+                        self::fields_code => 'select_option_multiple',
+                        self::fields_field_type => TableInterface::column_type_VARCHAR,
+                        self::fields_frontend_attrs => 'type="text" data-parsley-minlength="3" required multiple',
+                        self::fields_field_length => 255,
+                        self::fields_is_swatch => 1,
+                        self::fields_swatch_image => 0,
+                        self::fields_swatch_color => 0,
+                        self::fields_swatch_text => 1,
+                        self::fields_element => 'select',
+                        self::fields_model_class => \Weline\Eav\Ui\EavModel\Select\Option::class,
+                        self::fields_model_class_data => json_encode(['1' => '是', '0' => '否']),
+                        self::fields_required => 1,
+                        self::fields_default_value => 1,
+                        self::fields_name => '选择：选项[多选]',
                     ],
                 ],
                 self::fields_code
@@ -296,6 +426,67 @@ class Type extends \Weline\Framework\Database\Model
         return boolval($this->getData(self::fields_is_swatch));
     }
 
+    public function setElement(string $element): static
+    {
+        return $this->setData(self::fields_element, $element);
+    }
+
+    public function getElement(): string
+    {
+        return $this->getData(self::fields_element) ?: 'input';
+    }
+
+    public function getModelClass(): string
+    {
+        return $this->getData(self::fields_model_class) ?: '';
+    }
+
+    public function setModelClass(string $model): static
+    {
+        return $this->setData(self::fields_model_class, $model);
+    }
+
+    public function getModelClassData(): string
+    {
+        return $this->getData(self::fields_model_class_data) ?: '';
+    }
+
+    public function setModelClassData(string $model_data): static
+    {
+        return $this->setData(self::fields_model_class_data, $model_data);
+    }
+
+    public function getDefaultValue(): string
+    {
+        return $this->getData(self::fields_default_value) ?: '';
+    }
+
+    public function setDefaultValue(string $default_value): static
+    {
+        return $this->setData(self::fields_default_value, $default_value);
+    }
+
+    public function getRequired(): bool
+    {
+        return boolval($this->getData(self::fields_required));
+    }
+
+    public function setRequired(bool $required): static
+    {
+        return $this->setData(self::fields_required, $required ? 1 : 0);
+    }
+
+    public function getFrontendAttrs(): string
+    {
+        return $this->getData(self::fields_frontend_attrs) ?: '';
+    }
+
+    public function setFrontendAttrs(string $frontend_attrs): static
+    {
+        return $this->setData(self::fields_frontend_attrs, $frontend_attrs);
+    }
+
+
     public function setIsSwatch(bool $is_swatch): static
     {
         return $this->setData(self::fields_is_swatch, $is_swatch ? 1 : 0);
@@ -308,7 +499,7 @@ class Type extends \Weline\Framework\Database\Model
 
     public function setHasSwatchColor(bool $has_swatch_color): static
     {
-        return $this->setData(self::fields_has_swatch_color, $has_swatch_color ? 1 : 0);
+        return $this->setData(self::fields_swatch_color, $has_swatch_color ? 1 : 0);
     }
 
     public function hasSwatchImage(): bool
@@ -345,5 +536,146 @@ class Type extends \Weline\Framework\Database\Model
         $attrbiute = ObjectManager::getInstance(EavAttribute::class);
         $attrbiute->where(EavAttribute::fields_type_id, $this->getId());
         return $attrbiute;
+    }
+
+    public static function processOptions(EavAttribute &$attribute, array &$options = []): array
+    {
+        $option_items = $options['options'] ?? [];
+        $values       = $options['values'] ?? [];
+        $type         = $attribute->getType();
+        # 模型默认的选项
+        if ($model_class_data = $type->getModelClassData()) {
+            $model_class_data = json_decode($model_class_data, true);
+            # 数组合并，兼容键是数字时的合并
+            if ($model_class_data and $option_items) {
+                foreach ($model_class_data as $key => $model_class_data_item) {
+                    $option_items[$key] = $model_class_data_item;
+                }
+            }
+            $type->setModelClassData(json_encode($model_class_data));
+        }
+        # 模型数据
+        if ($model_class = $type->getModelClass()) {
+            /**@var EavModelInterface $model_object */
+            $model_object = ObjectManager::getInstance($model_class);
+            if ($model_object instanceof EavModelInterface) {
+                $type->setModelClassData(json_encode($model_object->getModelData()));
+            } else {
+                throw new \Exception(__('模型类: %1 必须是 EavModelInterface 接口类的实例', $model_class));
+            }
+        }
+        $attrs       = $options['attrs'] ?? [];
+        $label_class = $options['label_class'] ?? '';
+        $attrs       = array_merge($attribute->getData(), [
+            'field_type' => $type->getFieldType(),
+            'length' => $type->getFieldLength(),
+            'name' => $attribute->getCode(),
+            'model_class_data' => htmlspecialchars($type->getModelClassData()),
+            'title' => $attribute->getName() ?: $type->getName(),
+            'placeholder' => __('请输入 ') . $type->getName(),
+            'required' => $type->getRequired() ? 'required' : '',
+            $type->getFrontendAttrs() => ''
+        ], $attrs);
+        unset($attrs['frontend_attrs']);
+        unset($attrs['type']);
+        return [$label_class, $attrs, $option_items, $values];
+    }
+
+    /**
+     * @DESC          # 获取类型输出html
+     *
+     * @AUTH  秋枫雁飞
+     * @EMAIL aiweline@qq.com
+     * @DateTime: 26/4/2024 下午1:59
+     * 参数区：
+     * @param EavAttribute $attribute
+     * @param array $options ['options' => ['1' => '选项1', '2' => '选项2'], 'attrs' => ['class' => 'form-control'], 'label_class' => 'label-class']
+     * @return string
+     * @throws Exception
+     */
+    function getHtml(EavAttribute &$attribute, array &$options = []): string
+    {
+        list($label_class, $attrs, $option_items, $values) = self::processOptions($attribute, $options);
+        # 提取配置值
+        $value = null;
+        if (isset($values[$attribute->getCode()])) {
+            $value = $values[$attribute->getCode()];
+        }
+        if ($value === null and $attribute->getEntityId()) {
+            $value = $attribute->getValue();
+        }
+        if ($value === null) {
+            $value = $this->getDefaultValue();
+        }
+        # 如果有模型则直接返回模型
+        if ($this->getModelClass()) {
+            /** @var EavModelInterface $model */
+            $model = ObjectManager::getInstance($this->getModelClass());
+            return $model->getHtml($attribute, $value, $label_class, $attrs, $option_items);
+        }
+        $element = $this->getElement();
+        switch ($element) {
+            case 'select':
+                $options = array_merge($options, json_decode($this->getModelClassData(), true));
+                if (empty($options)) {
+                    throw new \Exception(__('Eav属性输入：缺少select选项'));
+                }
+                break;
+            case 'input':
+            case 'checkbox':
+            case 'radio':
+                $attrs['value'] = $value;
+                break;
+            case 'textarea':
+            default:
+                break;
+        }
+        $attrsString = '';
+        $id          = $this->getCode() . '_' . $attribute->getCode() . '_' . $this->getId();
+        foreach ($attrs as $k => $v) {
+            switch ($k) {
+                case 'type':
+                    switch ($v) {
+                        case 'int':
+                        case 'integer':
+                        case 'float':
+                        case 'smallint':
+                            $attrsString .= ' type="number"';
+                            break;
+                        case self::fields_swatch_image:
+                            $attrsString .= ' type="image"';
+                            break;
+                        case self::fields_swatch_color:
+                            $attrsString .= ' type="color"';
+                            break;
+                        default:
+                            $attrsString .= ' type="text"';
+                            break;
+                    }
+                    break;
+                default:
+                    $attrsString .= ' ' . $k . '="' . $v . '"';
+                    break;
+            }
+        }
+        $html = '<label for="' . $id . '" class="' . $label_class . '">' . $attribute->getName() . '(' . $this->getName() . ')</label>';
+        switch ($element) {
+            case 'select':
+                $html .= '<select id="' . $id . '"' . $attrsString . '>';
+                foreach ($option_items as $k => $v) {
+                    $html .= '<option value="' . $k . '" ' . ($value == $k ? 'selected' : '') . '>' . $v . '</option>';
+                }
+                $html .= '</select>';
+                break;
+            case 'textarea':
+                $html .= '<textarea id="' . $id . '" ' . $attrsString . '>' . $value . '</textarea>';
+                break;
+            case 'radio':
+            case 'checkbox':
+            default:
+                $html .= '<input id="' . $id . '" ' . $attrsString . '>';
+                break;
+        }
+        return $html;
     }
 }

@@ -128,7 +128,7 @@ $themeConfig = \Weline\Framework\Manager\ObjectManager::getInstance(\Weline\Back
                                                    flush-button-text="刷新"
                                                    flush-button-class="btn btn -default"
                                                    flush="1"
-                                                   save="1"
+                                                   save="0"
                                                    save-form="#demo-form"
                                                    close-button-show="1"
                                                    close-button-text="取消"
@@ -174,7 +174,7 @@ $themeConfig = \Weline\Framework\Manager\ObjectManager::getInstance(\Weline\Back
                                                 <tr>
                                                     <td class='co-name'>{{attribute.attribute_id}}</td>
                                                     <td class='co-name'>
-                                                        ID:{{attribute.entity_id|0}}-{{attribute.entity_local_name|attribute.entity_name}}
+                                                        ID:{{attribute.eav_entity_id|0}}-{{attribute.entity_local_name|attribute.entity_name}}
                                                     </td>
                                                     <td>{{attribute.code}}</td>
                                                     <td class='co-name'>
@@ -204,7 +204,7 @@ $themeConfig = \Weline\Framework\Manager\ObjectManager::getInstance(\Weline\Back
                                                                            action="*/backend/attribute/edit"
                                                                            vars="attribute"
                                                                            save="0"
-                                                                           action-params="{attribute_id: attribute.attribute_id, entity_id: attribute.entity_id,isAjax:attribute.attribute_id}"
+                                                                           action-params="{attribute_id: attribute.attribute_id, entity_id: attribute.eav_entity_id,isAjax:attribute.attribute_id}"
                                                                            target-button-text='修改'
                                                                            target-button-class='btn btn-info'
                                                                            title='编辑属性'
@@ -303,10 +303,10 @@ $themeConfig = \Weline\Framework\Manager\ObjectManager::getInstance(\Weline\Back
         // 触发的按钮
         let button = event.relatedTarget
         let attribute_code = button.getAttribute('data-code')
-        let entity_id = button.getAttribute('data-entity_id')
+        let eav_entity_id = button.getAttribute('data-eav_entity_id')
         $.ajax({
-            url: '@backend-url("*/backend/attribute/option/search")?entity_id={entity_id}&attribute_code={attribute_code}'
-                .replace('{entity_id}', entity_id).replace('{attribute_code}', attribute_code),
+            url: '@backend-url("*/backend/attribute/option/search")?eav_entity_id={eav_entity_id}&attribute_code={attribute_code}'
+                .replace('{eav_entity_id}', eav_entity_id).replace('{attribute_code}', attribute_code),
             success: (res) => {
                 let attributeOption = $('#attributeOption')
                 attributeOption.empty()

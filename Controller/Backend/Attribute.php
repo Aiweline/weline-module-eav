@@ -48,14 +48,14 @@ class Attribute extends \Weline\Framework\App\Controller\BackendController
     public function index()
     {
         $this->eavAttribute->addLocalDescription()
-            ->joinModel(EavEntity::class, 'entity', 'main_table.entity_id=entity.entity_id', 'left', 'entity.name as entity_name')
-            ->joinModel(EavEntity\LocalDescription::class, 'entity_local', 'main_table.entity_id=entity_local.entity_id and entity_local.local_code=\'' . Cookie::getLangLocal() . '\'', 'left', 'entity_local.name as entity_local_name');
+            ->joinModel(EavEntity::class, 'entity', 'main_table.eav_entity_id=entity.entity_id', 'left', 'entity.name as entity_name')
+            ->joinModel(EavEntity\LocalDescription::class, 'entity_local', 'main_table.eav_entity_id=entity_local.entity_id and entity_local.local_code=\'' . Cookie::getLangLocal() . '\'', 'left', 'entity_local.name as entity_local_name');
         $this->eavAttribute->joinModel(Type::class, 'type');
         if ($search = $this->request->getGet('search')) {
             $this->eavAttribute->where('concat(main_table.name,main_table.code,type.name,type.code,local.name,entity.name,entity.code,entity_local.name)', "%$search%", 'like');
         }
         if ($entity = $this->request->getGet('entity')) {
-            $this->eavAttribute->where('entity_id', $entity);
+            $this->eavAttribute->where('eav_entity_id', $entity);
         }
         // p($this->eavAttribute->select()->getLastSql());
         $attributes = $this->eavAttribute->order('main_table.update_time')->pagination()->select()->fetchOrigin();

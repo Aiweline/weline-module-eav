@@ -47,4 +47,11 @@ class EntityTest extends \Weline\Framework\UnitTest\TestCore
                                   ->save();
         self::assertTrue($result,'添加实体');
     }
+
+    function testDeleteEntityAttribute()
+    {
+        $entity = $this->eavEntity->loadByCode('queue');
+        $valueModel = $entity->getAttribute('op_source_site_id')->w_getValueModel();
+        dd($valueModel);
+    }
 }

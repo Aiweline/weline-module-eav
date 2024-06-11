@@ -24,11 +24,11 @@ class Set extends \Weline\Framework\Database\Model
     public const fields_ID        = 'set_id';
     public const fields_SET_ID    = 'set_id';
     public const fields_code      = 'code';
-    public const fields_entity_id = 'entity_id';
+    public const fields_eav_entity_id = 'eav_entity_id';
     public const fields_name      = 'name';
 
-    public array $_unit_primary_keys = ['set_id', 'entity_id', 'code'];
-    public array $_index_sort_keys = ['set_id', 'entity_id', 'code'];
+    public array $_unit_primary_keys = ['set_id', 'eav_entity_id', 'code'];
+    public array $_index_sort_keys = ['set_id', 'eav_entity_id', 'code'];
 
     /**
      * @inheritDoc
@@ -55,11 +55,11 @@ class Set extends \Weline\Framework\Database\Model
         if (!$setup->tableExist()) {
             $setup->createTable(__('属性集表'))
                   ->addColumn(self::fields_ID, TableInterface::column_type_INTEGER, 0, 'PRIMARY KEY auto_increment', __('属性集ID'))
-                  ->addColumn(self::fields_entity_id, TableInterface::column_type_INTEGER, 0, 'not null', __('实体ID'))
+                  ->addColumn(self::fields_eav_entity_id, TableInterface::column_type_INTEGER, 0, 'not null', __('实体ID'))
                   ->addColumn(self::fields_code, TableInterface::column_type_VARCHAR, 255, 'not null', __('属性集代码'))
                   ->addColumn(self::fields_name, TableInterface::column_type_VARCHAR, 255, 'not null', __('属性集名'))
-                  ->addIndex(TableInterface::index_type_UNIQUE, 'idx_unique_code_and_entity_id', [self::fields_code, self::fields_entity_id])
-                  ->addIndex(TableInterface::index_type_KEY, 'idx_entity_id', self::fields_entity_id)
+                  ->addIndex(TableInterface::index_type_UNIQUE, 'idx_unique_code_and_eav_entity_id', [self::fields_code, self::fields_eav_entity_id])
+                  ->addIndex(TableInterface::index_type_KEY, 'idx_eav_entity_id', self::fields_eav_entity_id)
                   ->addIndex(TableInterface::index_type_KEY, 'idx_code', self::fields_code)
                   ->create();
         }
@@ -67,22 +67,22 @@ class Set extends \Weline\Framework\Database\Model
 
     function setCode(string $code): static
     {
-        return $this->setData(self::fields_ID, $code);
+        return $this->setData(self::fields_code, $code);
     }
 
     function getCode()
     {
-        return $this->getData(self::fields_ID);
+        return $this->getData(self::fields_code);
     }
 
-    function setEntityCode(string $entity_id): Set
+    function setEntityId(int $eav_entity_id): Set
     {
-        return $this->setData(self::fields_entity_id, $entity_id);
+        return $this->setData(self::fields_eav_entity_id, $eav_entity_id);
     }
 
-    function getEntityCode()
+    function getEntityId()
     {
-        return $this->getData(self::fields_entity_id);
+        return $this->getData(self::fields_eav_entity_id);
     }
 
     function getName()

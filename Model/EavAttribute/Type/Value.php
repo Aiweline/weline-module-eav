@@ -23,10 +23,11 @@ use Weline\Framework\Setup\Db\ModelSetup;
 
 class Value extends \Weline\Framework\Database\Model
 {
-    public const fields_ID           = 'value_id';
+    public const fields_ID = 'value_id';
+    public const fields_value_id = 'value_id';
     public const fields_attribute_id = 'attribute_id';
-    public const fields_entity_id    = 'entity_id';
-    public const fields_value        = 'value';
+    public const fields_entity_id = 'entity_id';
+    public const fields_value = 'value';
 //    public const fields_is_swatch   = 'is_swatch';
 //    public const fields_swatch_image   = 'swatch_image';
 //    public const fields_swatch_color   = 'swatch_color';
@@ -34,6 +35,7 @@ class Value extends \Weline\Framework\Database\Model
 
     public array $attributes_type_fields = [];
     public array $_index_sort_keys = [self::fields_attribute_id, self::fields_entity_id];
+    public array $_unit_primary_keys = [self::fields_attribute_id, self::fields_entity_id];
 
     private ?EavAttribute $attribute = null;
 
@@ -78,6 +80,12 @@ class Value extends \Weline\Framework\Database\Model
                 if (!$setup->tableExist($eav_entity_type_table)) {
                     $table = $setup->createTable('实体' . $entity->getCode() . '的Eav模型' . $type->getCode() . '类型数据表', $eav_entity_type_table);
                     $table->addColumn(
+                        self::fields_value_id,
+                        TableInterface::column_type_BIGINT,
+                        18,
+                        'primary key auto_increment',
+                        '属性值ID'
+                    )->addColumn(
                         self::fields_attribute_id,
                         TableInterface::column_type_INTEGER,
                         11,
@@ -113,8 +121,7 @@ class Value extends \Weline\Framework\Database\Model
                     $table
                         ->addIndex(TableInterface::index_type_KEY, 'EAV_ATTRIBUTE_ID', 'attribute_id')
                         ->addIndex(TableInterface::index_type_KEY, 'EAV_ENTITY_ID', 'entity_id')
-                        ->addConstraints('primary key(`' . self::fields_attribute_id . '`,`' . self::fields_entity_id . '`,`'
-                            . self::fields_value . '`)')
+                        ->addConstraints('unique index(`' . self::fields_attribute_id . '`,`' . self::fields_entity_id . '`)')
                         ->create();
                 }
             }
@@ -134,7 +141,7 @@ class Value extends \Weline\Framework\Database\Model
      * @return $this
      * @throws null
      */
-    public function setAttribute(EavAttribute $attribute): static
+    public function setAttribute(EavAttribute &$attribute): static
     {
         if (empty($attribute->getId())) {
             throw new Exception(__('属性不存在！'));
@@ -155,7 +162,7 @@ class Value extends \Weline\Framework\Database\Model
         } else {
             $attribute = $attribute_or_id;
             if (isset($this->attributes_type_fields[$attribute->getId()])) {
-                return $this->attributes_type_fields[$attribute_or_id];
+                return $this->attributes_type_fields[$attribute->getId()];
             }
         }
         if (empty($attribute->getId())) {
@@ -199,6 +206,7 @@ class Value extends \Weline\Framework\Database\Model
         }
         $table                   = 'eav_' . $this->attribute->current_getEntity()->getEntityCode() . '_' . $this->attribute->getTypeModel()->getCode();
         $this->origin_table_name = parent::getTable($table);
+
         return $this->origin_table_name;
     }
 

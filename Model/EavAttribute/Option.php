@@ -23,7 +23,7 @@ class Option extends \Weline\Framework\Database\Model
 {
     public const fields_ID           = 'option_id';
     public const fields_option_id    = 'option_id';
-    public const fields_entity_id    = 'entity_id';
+    public const fields_eav_entity_id    = 'eav_entity_id';
     public const fields_attribute_id = 'attribute_id';
     public const fields_code         = 'code';
     public const fields_value        = 'value';
@@ -62,7 +62,7 @@ class Option extends \Weline\Framework\Database\Model
                 ->addColumn(self::fields_code, TableInterface::column_type_VARCHAR, 255, 'not null', '配置项代码')
                 ->addColumn(self::fields_value, TableInterface::column_type_VARCHAR, 255, 'not null', '配置值')
                 ->addColumn(self::fields_attribute_id, TableInterface::column_type_INTEGER, 0, 'not null', '属性ID')
-                ->addColumn(self::fields_entity_id, TableInterface::column_type_VARCHAR, 255, 'not null', '相关实体ID')
+                ->addColumn(self::fields_eav_entity_id, TableInterface::column_type_VARCHAR, 255, 'not null', '相关实体ID')
                 ->addColumn(self::fields_swatch_image, TableInterface::column_type_TEXT, 0, '', '图片')
                 ->addColumn(self::fields_swatch_color, TableInterface::column_type_VARCHAR, 60, '', '颜色')
                 ->addColumn(self::fields_swatch_text, TableInterface::column_type_VARCHAR, 128, '', '文本')
@@ -97,12 +97,12 @@ class Option extends \Weline\Framework\Database\Model
 
     function getEntityId(): int
     {
-        return (int)$this->getData(self::fields_entity_id);
+        return (int)$this->getData(self::fields_eav_entity_id);
     }
 
-    function setEntityId(int $entity_id): static
+    function setEntityId(int $eav_entity_id): static
     {
-        return $this->setData(self::fields_entity_id, $entity_id);
+        return $this->setData(self::fields_eav_entity_id, $eav_entity_id);
     }
 
     function getAttributeId(): int
