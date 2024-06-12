@@ -369,7 +369,7 @@ abstract class EavModel extends Model implements EavInterface
     {
         /**@var Model\EavAttribute\Set $set */
         $set = ObjectManager::getInstance(EavAttribute\Set::class);
-        $set->where('main_table.' . EavAttribute\Set::fields_eav_entity_id, $this->eav_Entity()->getId());
+        $set->where('main_table.' . EavAttribute\Set::fields_entity_id, $this->eav_Entity()->getId());
         return $set;
     }
 
