@@ -92,12 +92,12 @@ abstract class EavModel extends Model implements EavInterface
         return $this->eav_Entity()->getId();
     }
 
-    public function getEntityFieldIdType(): string
+    public function getEavEntityFieldIdType(): string
     {
         return $this->eav_entity_id_field_type ?: $this::eav_entity_id_field_type;
     }
 
-    public function getEntityFieldIdLength(): int
+    public function getEavEntityFieldIdLength(): int
     {
         return $this->eav_entity_id_field_length ?: $this::eav_entity_id_field_length;
     }

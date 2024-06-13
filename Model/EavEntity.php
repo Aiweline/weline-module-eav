@@ -43,7 +43,7 @@ class EavEntity extends Model
      */
     public function setup(ModelSetup $setup, Context $context): void
     {
-        $setup->dropTable();
+//        $setup->dropTable();
         if (!$setup->tableExist()) {
             $this->install($setup, $context);
         }
@@ -205,7 +205,7 @@ class EavEntity extends Model
         return $this->getData(self::fields_eav_entity_id_field_type);
     }
 
-    public function setEntityIdFieldType(string $eav_entity_id_field_type): static
+    public function setEavEntityIdFieldType(string $eav_entity_id_field_type): static
     {
         return $this->setData(self::fields_eav_entity_id_field_type, $eav_entity_id_field_type);
     }
@@ -215,7 +215,7 @@ class EavEntity extends Model
         return intval($this->getData(self::fields_eav_entity_id_field_length));
     }
 
-    public function setEntityIdFieldLength(int $eav_entity_id_field_length): static
+    public function setEavEntityIdFieldLength(int $eav_entity_id_field_length): static
     {
         return $this->setData(self::fields_eav_entity_id_field_length, $eav_entity_id_field_length);
     }

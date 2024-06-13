@@ -52,7 +52,7 @@ interface EavInterface
      * 参数区：
      * @return string
      */
-    public function getEntityFieldIdType(): string;
+    public function getEavEntityFieldIdType(): string;
 
     /**
      * @DESC          # 获取实体实体ID字段长度
@@ -63,7 +63,7 @@ interface EavInterface
      * 参数区：
      * @return int
      */
-    public function getEntityFieldIdLength(): int;
+    public function getEavEntityFieldIdLength(): int;
 
     /**
      * @DESC          # 添加属性
