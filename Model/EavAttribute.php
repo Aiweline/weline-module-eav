@@ -384,7 +384,7 @@ class EavAttribute extends \Weline\Framework\Database\Model
         return $this->getData($this::value_key);
     }
 
-    public function getSwatchValue(string|int $entity_id = null, bool $object = false)
+    public function getSwatchValue(string|int $eav_entity_id = null, bool $object = false)
     {
         if (!$this->current_getEntity()->getId()) {
             throw new Exception(__('该属性没有entity实体！'));
@@ -392,8 +392,8 @@ class EavAttribute extends \Weline\Framework\Database\Model
         if (!$this->getCode()) {
             throw new Exception(__('该属性没有code代码！'));
         }
-        $entity_id = $entity_id ?: $this->current_getEntity()->getId();
-        if ($entity_id) {
+        $eav_entity_id = $eav_entity_id ?: $this->current_getEntity()->getId();
+        if ($eav_entity_id) {
             $attribute  = clone $this;
             $valueModel = $this->w_getValueModel();
             $valueModel->setAttribute($this);
@@ -405,7 +405,7 @@ class EavAttribute extends \Weline\Framework\Database\Model
             $attribute->joinModel(
                 $valueModel,
                 'v',
-                "main_table.attribute_id=v.attribute_id and v.entity_id='{$entity_id}'",
+                "main_table.attribute_id=v.attribute_id and v.eav_entity_id='{$eav_entity_id}'",
                 'left',
                 'v.value'
             );
@@ -504,7 +504,7 @@ class EavAttribute extends \Weline\Framework\Database\Model
             $data           = [];
             $bindFieldsData = [];
             foreach ($value as $item) {
-                $data_tmp = ['entity_id' => $entity_id, 'value' => $item, 'attribute_id' => $this->getId()];
+                $data_tmp = ['eav_entity_id' => $entity_id, 'value' => $item, 'attribute_id' => $this->getId()];
                 if (isset($item['swatch_image'])) {
                     $bindFieldsData['swatch_image'] = $swatch_image;
                 }

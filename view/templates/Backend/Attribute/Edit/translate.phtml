@@ -69,7 +69,7 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
                                        id='off_canvas_attribute_translate'
                                        action='*/backend/attribute/translate'
                                        vars='attribute'
-                                       action-params='{attribute_code: attribute.code, entity_id: attribute.entity_id}'
+                                       action-params='{attribute_code: attribute.code, eav_entity_id: attribute.eav_entity_id}'
                                        submit-button-text='保存'
                                        target-button-text='修改'
                                        title='编辑属性'
@@ -290,7 +290,7 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
                             type:'POST',
                             data: Object.assign(values,{
                                 attribute_code:'{{attribute.code}}',
-                                entity_id:'{{attribute.entity_id}}',
+                                eav_entity_id:'{{attribute.eav_entity_id}}',
                                 origin_code:dataTr.attr('data-id')
                             }),
                             dataType: 'json',
@@ -349,7 +349,7 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
                             $.ajax({
                                 url: '@backend-url("*/backend/attribute/option/delete")?isAjax=1',
                                 type: 'POST',
-                                data: {code: parent.attr('data-id'), attribute_code: '{{attribute.code}}', entity_id: '{{attribute.entity_id}}'},
+                                data: {code: parent.attr('data-id'), attribute_code: '{{attribute.code}}', eav_entity_id: '{{attribute.eav_entity_id}}'},
                                 async: true,
                                 success: function (result) {
                                     if (result.code === 1) {
@@ -414,7 +414,7 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
                 let data = {
                     'code': code,
                     'name': name,
-                    'entity_id':'{{attribute.entity_id}}',
+                    'eav_entity_id':'{{attribute.eav_entity_id}}',
                     'attribute_code':'{{attribute.code}}'
                 }
                 // ajax请求添加配置项到数据库
@@ -504,7 +504,7 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
                 let search = $(e.target).val()
                 $.ajax({
                     url: '@backend-url("*/backend/attribute/option/search")?field=code&limit=1&search=' + search +
-                        '&entity_id={{attribute.entity_id}}&attribute_code={{attribute.code}}',
+                        '&eav_entity_id={{attribute.eav_entity_id}}&attribute_code={{attribute.code}}',
                     success: function (res) {
                         if (res['msg']) {
                             Swal.fire(
@@ -535,7 +535,7 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
                 let search = $(e.target).val()
                 $.ajax({
                     url:`@backend-url('*/backend/attribute/option/search')?field=name&limit=1&search=` + search +
-                        '&entity_id={{attribute.entity_id}}&attribute_code={{attribute.code}}',
+                        '&eav_entity_id={{attribute.eav_entity_id}}&attribute_code={{attribute.code}}',
                     success: function (res) {
                         if (res['msg']) {
                             Swal.fire(

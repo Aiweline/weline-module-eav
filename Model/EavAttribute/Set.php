@@ -80,7 +80,7 @@ class Set extends \Weline\Framework\Database\Model
         return $this->setData(self::fields_eav_entity_id, $eav_entity_id);
     }
 
-    function getEntityId()
+    function getEavEntityId()
     {
         return $this->getData(self::fields_eav_entity_id);
     }

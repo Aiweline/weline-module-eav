@@ -67,16 +67,16 @@ class EavHelper
     {
         /** @var \Weline\Eav\Model\EavAttribute\Set $attributeSet */
         $attributeSet = ObjectManager::make(\Weline\Eav\Model\EavAttribute\Set::class);
-        $entity_id    = self::getEntity($entity_code)->getId();
+        $eav_entity_id    = self::getEntity($entity_code)->getId();
         $attributeSet = $attributeSet->where($attributeSet::fields_code, $code)
-            ->where($attributeSet::fields_entity_id, $entity_id)
+            ->where($attributeSet::fields_eav_entity_id, $eav_entity_id)
             ->find()
             ->fetch();
         if (!$attributeSet->getId()) {
             # 创建属性集
             /** @var \Weline\Eav\Model\EavAttribute\Set $attributeSet */
             $attributeSet = ObjectManager::make(\Weline\Eav\Model\EavAttribute\Set::class);
-            $attributeSet->setEntityId($entity_id)
+            $attributeSet->setEntityId($eav_entity_id)
                 ->setCode($code)
                 ->setName($name)
                 ->save();
@@ -91,10 +91,10 @@ class EavHelper
     {
         /** @var \Weline\Eav\Model\EavAttribute\Group $attributeGroup */
         $attributeGroup = ObjectManager::make(\Weline\Eav\Model\EavAttribute\Group::class);
-        $entity_id      = self::getEntity($entity_code)->getId();
+        $eav_entity_id      = self::getEntity($entity_code)->getId();
         $set_id         = self::getEntityAttributeSet($entity_code,$set_code, $set_name)->getId();
         $attributeGroup = $attributeGroup->where($attributeGroup::fields_code, $code)
-            ->where($attributeGroup::fields_entity_id, $entity_id)
+            ->where($attributeGroup::fields_eav_entity_id, $eav_entity_id)
             ->where($attributeGroup::fields_set_id, $set_id)
             ->find()
             ->fetch();
@@ -102,7 +102,7 @@ class EavHelper
             # 创建属性集
             /** @var \Weline\Eav\Model\EavAttribute\Group $attributeGroup */
             $attributeGroup = ObjectManager::make(\Weline\Eav\Model\EavAttribute\Group::class);
-            $attributeGroup->setEntityId($entity_id)
+            $attributeGroup->setEntityId($eav_entity_id)
                 ->setCode($code)
                 ->setSetId($set_id)
                 ->setName($group_name)
@@ -118,20 +118,20 @@ class EavHelper
     {
         /** @var \Weline\Eav\Model\EavAttribute $attribute */
         $attribute = ObjectManager::make(\Weline\Eav\Model\EavAttribute::class);
-        $entity_id = (int)self::getEntity($entity_code)->getId();
+        $eav_entity_id = (int)self::getEntity($entity_code)->getId();
         $set_id    = (int)self::getEntityAttributeSet($set_code, $set_name)->getId();
         $group_id  = (int)self::getEntityAttributeGroup($group_code, $group_name, $set_code, $set_name)->getId();
         $type_id   = (int)self::getType($type_code)->getId();
         /**@var \Weline\Eav\Model\EavAttribute $attribute */
         $attribute = $attribute->where($attribute::fields_code, $code)
-            ->where($attribute::fields_entity_id, $entity_id)
+            ->where($attribute::fields_eav_entity_id, $eav_entity_id)
             ->find()
             ->fetch();
         if (!$attribute->getId()) {
             /** @var \Weline\Eav\Model\EavAttribute $attribute */
             $attribute = ObjectManager::make(\Weline\Eav\Model\EavAttribute::class);
             $attribute
-                ->setEntityId($entity_id)
+                ->setEntityId($eav_entity_id)
                 ->setCode($code)
                 ->setName($name)
                 ->setTypeId($type_id)

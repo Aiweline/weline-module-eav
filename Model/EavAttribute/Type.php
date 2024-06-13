@@ -601,11 +601,12 @@ class Type extends \Weline\Framework\Database\Model
         if (isset($values[$attribute->getCode()])) {
             $value = $values[$attribute->getCode()];
         }
-        if ($value === null and $attribute->getEntityId()) {
-            $value = $attribute->getValue();
-        }
         if ($value === null) {
-            $value = $this->getDefaultValue();
+            if (isset($options['entity']) and $options['entity']) {
+                $value = $attribute->getValue();
+            }else{
+                $value = $this->getDefaultValue();
+            }
         }
         # 如果有模型则直接返回模型
         if ($this->getModelClass()) {

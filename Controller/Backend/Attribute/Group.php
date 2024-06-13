@@ -33,9 +33,9 @@ class Group extends \Weline\Framework\App\Controller\BackendController
     function index()
     {
         $this->group->addLocalDescription()
-            ->joinModel(EavEntity::class, 'entity', 'main_table.entity_id=entity.entity_id', 'left', 'entity.name as entity_name')
+            ->joinModel(EavEntity::class, 'entity', 'main_table.eav_entity_id=entity.eav_entity_id', 'left', 'entity.name as entity_name')
             ->joinModel(\Weline\Eav\Model\EavAttribute\Set::class, 'set', 'main_table.set_id=set.set_id', 'left', 'set.name as set_name')
-            ->joinModel(EavEntity\LocalDescription::class, 'entity_local', 'main_table.entity_id=entity_local.entity_id and entity_local.local_code=\''.Cookie::getLangLocal().'\'', 'left', 'entity_local.name as entity_local_name')
+            ->joinModel(EavEntity\LocalDescription::class, 'entity_local', 'main_table.eav_entity_id=entity_local.eav_entity_id and entity_local.local_code=\''.Cookie::getLangLocal().'\'', 'left', 'entity_local.name as entity_local_name')
             ->joinModel(LocalDescription::class, 'set_local', 'main_table.set_id=set_local.set_id and set_local.local_code=\''.Cookie::getLangLocal().'\'', 'left', 'set_local.name as set_local_name');
         if ($search = $this->request->getGet('search')) {
             $this->group->where('concat(local.name,main_table.name,entity.name,entity.code)', "%$search%", 'like');
@@ -51,12 +51,12 @@ class Group extends \Weline\Framework\App\Controller\BackendController
     {
         $field       = $this->request->getGet('field');
         $limit       = $this->request->getGet('limit');
-        $entity_id = $this->request->getGet('entity_id');
+        $eav_entity_id = $this->request->getGet('eav_entity_id');
         $set_id    = $this->request->getGet('set_id');
         $search      = $this->request->getGet('search');
-        $json        = ['items'  => [], 'entity_id' => $entity_id, 'set_id' => $set_id, 'limit' => $limit,
+        $json        = ['items'  => [], 'eav_entity_id' => $eav_entity_id, 'set_id' => $set_id, 'limit' => $limit,
             'search' => $search];
-        if (empty($entity_id)) {
+        if (empty($eav_entity_id)) {
             $json['msg'] = __('请先选择实体后操作！');
             return $this->fetchJson($json);
         }
@@ -64,7 +64,7 @@ class Group extends \Weline\Framework\App\Controller\BackendController
             $json['msg'] = __('请先选择属性后操作！');
             return $this->fetchJson($json);
         }
-        $this->group->where('entity_id', $entity_id)
+        $this->group->where('eav_entity_id', $eav_entity_id)
             ->where('set_id', $set_id);
         if ($field && $search) {
             $this->group->where($field, $search);
@@ -112,7 +112,7 @@ class Group extends \Weline\Framework\App\Controller\BackendController
             try {
                 $this->validatePost();
                 $this->group->setData($this->request->getPost())
-                    ->forceCheck(true, [$this->group::fields_code, $this->group::fields_entity_id, $this->group::fields_set_id])
+                    ->forceCheck(true, [$this->group::fields_code, $this->group::fields_eav_entity_id, $this->group::fields_set_id])
                     ->save();
                 $this->getMessageManager()->addSuccess(__('修改成功！'));
                 $this->session->delete('eav_group');
@@ -131,7 +131,7 @@ class Group extends \Weline\Framework\App\Controller\BackendController
             $this->assign('group',$group);
             $this->assign('group_set',ObjectManager::getInstance(\Weline\Eav\Model\EavAttribute\Set::class)->load($group->getData($group::fields_set_id)));
             $this->assign('group_entity',ObjectManager::getInstance(\Weline\Eav\Model\EavEntity::class)->load($group->getData
-            ($group::fields_entity_id)));
+            ($group::fields_eav_entity_id)));
         }
         $this->init_form();
         return $this->fetch('form');
@@ -169,12 +169,12 @@ class Group extends \Weline\Framework\App\Controller\BackendController
         }
         // 属性组
         $code        = $this->request->getGet('code');
-        $entity_id = $this->request->getGet('entity_id');
+        $eav_entity_id = $this->request->getGet('eav_entity_id');
         $set_id    = $this->request->getGet('set_id');
-        if ($code && $entity_id && $set_id) {
+        if ($code && $eav_entity_id && $set_id) {
             $group = $this->group->where('code', $code)
                 ->where('set_id', $set_id)
-                ->where('entity_id', $entity_id)
+                ->where('eav_entity_id', $eav_entity_id)
                 ->find()
                 ->fetch();
             $this->assign('group', $group);
@@ -191,9 +191,9 @@ class Group extends \Weline\Framework\App\Controller\BackendController
     protected function validatePost(): void
     {
         $code        = $this->request->getPost('code');
-        $entity_id = $this->request->getPost('entity_id');
+        $eav_entity_id = $this->request->getPost('eav_entity_id');
         $set_id    = $this->request->getPost('set_id');
-        if (empty($set_id) || empty($code) || empty($entity_id)) {
+        if (empty($set_id) || empty($code) || empty($eav_entity_id)) {
             $this->getMessageManager()->addWarning(__('参数异常！'));
             $this->session->setData('eav_group', $this->request->getPost());
             $this->redirect($this->_url->getCurrentUrl());

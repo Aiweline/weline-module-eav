@@ -95,7 +95,7 @@ class Option extends \Weline\Framework\Database\Model
         return $this->setData(self::fields_option_id, $option_id);
     }
 
-    function getEntityId(): int
+    function getEavEntityId(): int
     {
         return (int)$this->getData(self::fields_eav_entity_id);
     }

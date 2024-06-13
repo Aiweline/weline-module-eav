@@ -62,10 +62,10 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
                         <span class='step-title'>
                                 <lang>选择实体</lang>
                             </span>
-                        <span class='help-block' v-if="params.entity_id!==''">
+                        <span class='help-block' v-if="params.eav_entity_id!==''">
                                 <lang>你选择了</lang>
                                 <span class='text-primary'
-                                      v-text="'('+ findLabel(entities,params.entity_id,'entity_id','name')+')'"></span>
+                                      v-text="'('+ findLabel(entities,params.eav_entity_id,'eav_entity_id','name')+')'"></span>
                             </span>
                     </li>
                     <!--                    选择属性集-->
@@ -153,13 +153,13 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
                             <div class='mx-auto col-lg-6 mt-2 mb-4'>
                                 <div class='input-group'>
                                     <select id='search-entity-result' class='form-select form-control rounded' size='10'
-                                            name='entity_id' data-style='btn-primary' data-width='fit'
+                                            name='eav_entity_id' data-style='btn-primary' data-width='fit'
                                             scope="attribute"
-                                            v-model="params.entity_id" aria-label='@lang{搜索实体结果}'
+                                            v-model="params.eav_entity_id" aria-label='@lang{搜索实体结果}'
                                             aria-describedby='search-addon' required
                                     >
-                                        <option v-for="(v,index) in entities" :value='v.entity_id' :label="v.name"
-                                                v-bind:selected="v.entity_id == params.entity_id">
+                                        <option v-for="(v,index) in entities" :value='v.eav_entity_id' :label="v.name"
+                                                v-bind:selected="v.eav_entity_id == params.eav_entity_id">
                                         </option>
                                     </select>
                                 </div>
@@ -665,7 +665,7 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
             chooseImgModel: false, //图片弹框显示
             params: {
                 attribute_id: '{{attribute.attribute_id}}', //编辑携带
-                entity_id: '{{attribute.entity_id}}', //选择实体ID
+                eav_entity_id: '{{attribute.eav_entity_id}}', //选择实体ID
                 set_id: '{{attribute.set_id}}', //属性集ID
                 group_id: '{{attribute.group_id}}', //属性组ID
                 code: '{{attribute.code}}', //代码
@@ -705,7 +705,7 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
         },
         mounted() {
             this.activeName = '{{attribute.progress|"progress-select-entity"}}';
-            if (this.params.entity_id) {
+            if (this.params.eav_entity_id) {
                 this.renderSearchEntityAttributeSet();
             }
             if (this.params.set_id) {
@@ -775,7 +775,7 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
                 }
 
                 //    判断是否选择实体
-                if (!this.params.entity_id) {
+                if (!this.params.eav_entity_id) {
                     Swal.fire({
                         title: '@lang{请先选择实体再操作！}',
                         text: '@lang{当前实体为空！无法创建属性配置项！}',
@@ -851,8 +851,8 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
                 this.addParams.swatch_image = decodeURIComponent($('#callBackImg').val());
                 this.offRow = '';
             },
-            debounceChange: debounce(function (code, entity_id, set_id, group_id) {
-                if (!entity_id) {
+            debounceChange: debounce(function (code, eav_entity_id, set_id, group_id) {
+                if (!eav_entity_id) {
                     Swal.fire({
                         title: '@lang{请先选择实体再操作！}',
                         text: '@lang{当前实体为空！无法创建属性！}',
@@ -893,7 +893,7 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
                 }
                 $.ajax({
                     type: "get",
-                    url: '@backend-url("*/backend/attribute/search")?field=code&limit=1&search=' + code + '&entity_id=' + entity_id + '&set_id=' + set_id + '&group_id=' + group_id,
+                    url: '@backend-url("*/backend/attribute/search")?field=code&limit=1&search=' + code + '&eav_entity_id=' + eav_entity_id + '&set_id=' + set_id + '&group_id=' + group_id,
                     dataType: "json",
                     success: (res) => {
                         if (res.items.length > 0) {
@@ -940,7 +940,7 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
             }, 500),
             // 查询code是否可用
             checkCode(e) {
-                this.debounceChange(this.params.code, this.params.entity_id, this.params.set_id, this.params.group_id)
+                this.debounceChange(this.params.code, this.params.eav_entity_id, this.params.set_id, this.params.group_id)
             },
             // 编辑选中配置项列
             editRow(row, index) {
@@ -1024,7 +1024,7 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
                     return false
                 }
                 //    判断是否选择实体
-                if (!this.params.entity_id) {
+                if (!this.params.eav_entity_id) {
                     Swal.fire({
                         title: '@lang{请先选择实体再操作！}',
                         text: '@lang{当前实体为空！无法创建属性配置项！}',
@@ -1154,8 +1154,8 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
             /* 实体属性集搜索 */
             renderSearchEntityAttributeSet(e) {
                 $.ajax({
-                    url: '@backend-url("*/backend/attribute/set/search")?search=' + this.entityGroup + '&entity_id=' +
-                        this.params.entity_id,
+                    url: '@backend-url("*/backend/attribute/set/search")?search=' + this.entityGroup + '&eav_entity_id=' +
+                        this.params.eav_entity_id,
                     success: (res) => {
                         if (res['msg']) {
                             Swal.fire({
@@ -1177,7 +1177,7 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
             renderSearchEntityAttributeSetGroup(e) {
                 $.ajax({
                     url: '@backend-url("*/backend/attribute/group/search")?search=' + this.entityNameGroup +
-                        '&entity_id=' + this.params.entity_id + '&set_id=' + this.params.set_id,
+                        '&eav_entity_id=' + this.params.eav_entity_id + '&set_id=' + this.params.set_id,
                     success: (res) => {
                         if (res['msg']) {
                             Swal.fire({
@@ -1221,7 +1221,7 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
             changeNav(name) {
                 this.activeName = name;
                 console.log(this.activeName)
-                if (this.params.entity_id) {
+                if (this.params.eav_entity_id) {
                     this.renderSearchEntityAttributeSet();
                 }
                 if (this.params.set_id) {

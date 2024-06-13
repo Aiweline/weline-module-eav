@@ -123,17 +123,17 @@ $themeConfig = \Weline\Framework\Manager\ObjectManager::getInstance(\Weline\Back
                                             <tbody>
                                             <foreach name="entities" item="entity" key="key">
                                                 <tr>
-                                                    <td>{{entity.entity_id}}</td>
+                                                    <td>{{entity.eav_entity_id}}</td>
                                                     <td>{{entity.code}}</td>
                                                     <td class='co-name'>
                                                         <local name="entity-name" model='Weline\Eav\Model\EavEntity\LocalDescription'
-                                                               field='name' id='entity.entity_id'>
+                                                               field='name' id='entity.eav_entity_id'>
                                                             {{entity.local_name|entity.name}}
                                                         </local>
                                                     </td>
                                                     <td class='co-name'>{{entity.class}}</td>
-                                                    <td class='co-name'>{{entity.entity_id_field_type}}</td>
-                                                    <td class='co-name'>{{entity.entity_id_field_length}}</td>
+                                                    <td class='co-name'>{{entity.eav_entity_id_field_type}}</td>
+                                                    <td class='co-name'>{{entity.eav_entity_id_field_length}}</td>
                                                     <td class='co-name'>{{entity.is_system}}</td>
                                                     <td class='co-name'>{{entity.create_time}}</td>
                                                     <td class='co-name'>{{entity.update_time}}</td>

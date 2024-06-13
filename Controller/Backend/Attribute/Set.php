@@ -30,8 +30,8 @@ class Set extends \Weline\Framework\App\Controller\BackendController
     function index()
     {
         $this->set->addLocalDescription()
-        ->joinModel(EavEntity::class, 'entity', 'main_table.entity_id=entity.entity_id', 'left', 'entity.name as entity_name')
-        ->joinModel(EavEntity\LocalDescription::class, 'entity_local', 'main_table.entity_id=entity_local.entity_id and entity_local.local_code=\''.Cookie::getLangLocal().'\'', 'left', 'entity_local.name as entity_local_name');
+        ->joinModel(EavEntity::class, 'entity', 'main_table.eav_entity_id=entity.eav_entity_id', 'left', 'entity.name as entity_name')
+        ->joinModel(EavEntity\LocalDescription::class, 'entity_local', 'main_table.eav_entity_id=entity_local.eav_entity_id and entity_local.local_code=\''.Cookie::getLangLocal().'\'', 'left', 'entity_local.name as entity_local_name');
     
         if ($search = $this->request->getGet('search')) {
             $this->set->where('concat(local.name,main_table.name,entity.name,entity.code)', "%$search%", 'like');
@@ -131,12 +131,12 @@ class Set extends \Weline\Framework\App\Controller\BackendController
 
     function getApiSearch(): string
     {
-        $entity_id = $this->request->getGet('entity_id');
-        $json      = ['items' => [], 'entity_id' => $entity_id];
-        if (empty($entity_id)) {
+        $eav_entity_id = $this->request->getGet('eav_entity_id');
+        $json      = ['items' => [], 'eav_entity_id' => $eav_entity_id];
+        if (empty($eav_entity_id)) {
             return $this->fetchJson($json);
         }
-        $sets          = $this->set->where('entity_id', $entity_id)
+        $sets          = $this->set->where('eav_entity_id', $eav_entity_id)
                                    ->select()
                                    ->fetchOrigin();
         $json['items'] = $sets;
@@ -145,14 +145,14 @@ class Set extends \Weline\Framework\App\Controller\BackendController
 
     function getSearch(): string
     {
-        $entity_id = $this->request->getGet('entity_id');
+        $eav_entity_id = $this->request->getGet('eav_entity_id');
         $search    = $this->request->getGet('search');
-        $json      = ['items' => [], 'entity_id' => $entity_id, 'search' => $search];
-        if (empty($entity_id)) {
+        $json      = ['items' => [], 'eav_entity_id' => $eav_entity_id, 'search' => $search];
+        if (empty($eav_entity_id)) {
             $json['msg'] = __('请先选择实体后操作！');
             return $this->fetchJson($json);
         }
-        $this->set->where('entity_id', $entity_id);
+        $this->set->where('eav_entity_id', $eav_entity_id);
         if ($search) {
             $this->set->where('concat(name,code) like \'%' . $search . '%\'');
         }
@@ -165,8 +165,8 @@ class Set extends \Weline\Framework\App\Controller\BackendController
     protected function validatePost(): void
     {
         $code      = $this->request->getPost('code');
-        $entity_id = $this->request->getPost('entity_id');
-        if (empty($code) || empty($entity_id)) {
+        $eav_entity_id = $this->request->getPost('eav_entity_id');
+        if (empty($code) || empty($eav_entity_id)) {
             $this->getMessageManager()->addWarning(__('参数异常！'));
             $this->session->setData('eav_set', $this->request->getPost());
             $this->redirect($this->_url->getCurrentUrl());

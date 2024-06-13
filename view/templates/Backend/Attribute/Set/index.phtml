@@ -158,7 +158,7 @@ $themeConfig = \Weline\Framework\Manager\ObjectManager::getInstance(\Weline\Back
                                                         <tr>
                                                             <td class='co-name'>{{set.set_id}}</td>
                                                             <td class='co-name'>
-                                                                ID:{{set.entity_id|0}}-{{set.entity_local_name|set.entity_name}}
+                                                                ID:{{set.eav_entity_id|0}}-{{set.entity_local_name|set.entity_name}}
                                                             </td>
                                                             <td class='co-name'>
                                                                 <local
@@ -178,7 +178,7 @@ $themeConfig = \Weline\Framework\Manager\ObjectManager::getInstance(\Weline\Back
                                                                         template='Weline_Component::off-canvas.phtml'
                                                                         cache='0' id='off_canvas_attribute_set_edit'
                                                                         vars="set" action='*/backend/attribute/set/edit'
-                                                                        action-params="{isAjax:set.set_id,set_id:set.set_id,entity_id:set.entity_id}"
+                                                                        action-params="{isAjax:set.set_id,set_id:set.set_id,eav_entity_id:set.eav_entity_id}"
                                                                         submit-button-text='保存'
                                                                         submit-button-class='btn btn-primary'
                                                                         target-button-text='编辑'

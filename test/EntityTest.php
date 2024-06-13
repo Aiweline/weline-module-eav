@@ -39,8 +39,8 @@ class EntityTest extends \Weline\Framework\UnitTest\TestCore
                                           EavEntity::fields_class                  => 'Aiweline\WebStore\Model\Product',
                                           EavEntity::fields_name                   => '产品实体',
                                           EavEntity::fields_is_system              => '1',
-                                          EavEntity::fields_entity_id_field_type   => 'integer',
-                                          EavEntity::fields_entity_id_field_length => 11,
+                                          EavEntity::fields_eav_entity_id_field_type   => 'integer',
+                                          EavEntity::fields_eav_entity_id_field_length => 11,
                                       ]
                                   )
                                   ->forceCheck(true, EavEntity::fields_code)

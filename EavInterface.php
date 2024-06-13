@@ -18,8 +18,8 @@ interface EavInterface
 {
     const  entity_code            = '';
     const  entity_name            = '';
-    const  entity_id_field_type   = '';
-    const  entity_id_field_length = 0;
+    const  eav_entity_id_field_type   = '';
+    const  eav_entity_id_field_length = 0;
 
     /**
      * @DESC          # 获取实体名
@@ -121,11 +121,11 @@ interface EavInterface
      *
      * @param string          $code      属性的代码
      *
-     * @param int|string|null $entity_id 实体的具体ID【例如产品ID,分类ID,具体要看实体是哪个】
+     * @param int|string|null $eav_entity_id 实体的具体ID【例如产品ID,分类ID,具体要看实体是哪个】
      *
      * @return \Weline\Eav\Model\EavAttribute|null
      */
-    public function getAttribute(string $code, int|string $entity_id = null): EavAttribute|null;
+    public function getAttribute(string $code, int|string $eav_entity_id = null): EavAttribute|null;
 
     /**
      * @DESC          # 返回多个属性

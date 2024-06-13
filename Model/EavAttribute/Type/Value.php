@@ -94,8 +94,8 @@ class Value extends \Weline\Framework\Database\Model
                     )
                         ->addColumn(
                             self::fields_entity_id,
-                            $entity->getEntityIdFieldType(),
-                            $entity->getEntityIdFieldLength(),
+                            $entity->getEavEntityIdFieldType(),
+                            $entity->getEavEntityIdFieldLength(),
                             'not null',
                             '实体ID'
                         )
@@ -120,7 +120,7 @@ class Value extends \Weline\Framework\Database\Model
                     }
                     $table
                         ->addIndex(TableInterface::index_type_KEY, 'EAV_ATTRIBUTE_ID', 'attribute_id')
-                        ->addIndex(TableInterface::index_type_KEY, 'EAV_ENTITY_ID', 'entity_id')
+                        ->addIndex(TableInterface::index_type_KEY, 'EAV_ENTITY_ID', 'eav_entity_id')
                         ->addConstraints('unique index(`' . self::fields_attribute_id . '`,`' . self::fields_entity_id . '`)')
                         ->create();
                 }
@@ -226,7 +226,7 @@ class Value extends \Weline\Framework\Database\Model
         return $this->setData(self::fields_entity_id, $id);
     }
 
-    public function getEntityId(): int|string
+    public function getEavEntityId(): int|string
     {
         return $this->getData(self::fields_entity_id);
     }

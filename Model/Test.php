@@ -25,8 +25,8 @@ class Test extends EavModel
 
     public string $entity_code = 'test';
     public string $entity_name = '测试';
-    public string $entity_id_field_type = TableInterface::column_type_INTEGER;
-    public int $entity_id_field_length = 11;
+    public string $eav_entity_id_field_type = TableInterface::column_type_INTEGER;
+    public int $eav_entity_id_field_length = 11;
 
     /**
      * @inheritDoc

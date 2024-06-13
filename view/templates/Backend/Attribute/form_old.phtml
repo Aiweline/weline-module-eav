@@ -148,12 +148,12 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
                                         <select id='search-entity-result'
                                                 class='form-select form-control rounded'
                                                 size='10'
-                                                name='entity_id'
+                                                name='eav_entity_id'
                                                 data-style='btn-primary' data-width='fit'
                                                 aria-label='@lang{搜索实体结果}'
                                                 aria-describedby='search-addon' required>
                                             <foreach name='entities'>
-                                                <option value='{{v.entity_id}}' @if{eav_entity.entity_id===v.entity_id=>
+                                                <option value='{{v.eav_entity_id}}' @if{eav_entity.eav_entity_id===v.eav_entity_id=>
                                                     'selected'}>
                                                     {{v.name}}
                                                 </option>
@@ -477,7 +477,7 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
                                                             <td data-field='code' data-editable='true'>{{v.code}}</td>
                                                             <td data-field='value' data-editable='true'>{{v.value}}</td>
                                                             <td data-field="attribute_id">{{v.attribute_id}}</td>
-                                                            <td data-field="entity_id">{{v.entity_id}}</td>
+                                                            <td data-field="eav_entity_id">{{v.eav_entity_id}}</td>
                                                             <td data-field="create_time">{{v.create_time}}</td>
                                                             <td data-field="update_time">{{v.update_time}}</td>
                                                             <td style='width: 100px'>
@@ -597,12 +597,12 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
 
 <script>
 
-    function getEntityId() {
-        let entity_id = '{{eav_entity.entity_id}}';
-        if (entity_id === '') {
-            entity_id = $('#progress-select-entity').find('option:selected').val()
+    function getEavEntityId() {
+        let eav_entity_id = '{{eav_entity.eav_entity_id}}';
+        if (eav_entity_id === '') {
+            eav_entity_id = $('#progress-select-entity').find('option:selected').val()
         }
-        return entity_id;
+        return eav_entity_id;
     }
 
     function getSetId() {
@@ -640,7 +640,7 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
                 let search_entity_result = $('#search-entity-result')
                 search_entity_result.empty()
                 for (const item of items) {
-                    search_entity_result.append(`<option value="${item.entity_id}">${item.name}</option>`)
+                    search_entity_result.append(`<option value="${item.eav_entity_id}">${item.name}</option>`)
                 }
             }
         })
@@ -650,9 +650,9 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
     function renderSearchEntityAttributeSet(e) {
         let search = $(e.target)
         search = search.val()
-        let entity_id = getEntityId()
+        let eav_entity_id = getEavEntityId()
         $.ajax({
-            url: '@backend-url("*/backend/attribute/set/search")?search=' + search + '&entity_id=' + entity_id,
+            url: '@backend-url("*/backend/attribute/set/search")?search=' + search + '&eav_entity_id=' + eav_entity_id,
             success: function (res) {
                 if (res['msg']) {
                     Swal.fire(
@@ -680,11 +680,11 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
     function renderSearchEntityAttributeSetGroup(e) {
         let search = $(e.target)
         search = search.val()
-        let entity_id = getEntityId()
+        let eav_entity_id = getEavEntityId()
         let set_id = getSetId()
         $.ajax({
             url: '@backend-url("*/backend/attribute/group/search")?search=' + search +
-                '&entity_id=' + entity_id + '&set_id=' + set_id,
+                '&eav_entity_id=' + eav_entity_id + '&set_id=' + set_id,
             success: function (res) {
                 if (res['msg']) {
                     Swal.fire(
@@ -752,7 +752,7 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
                     option_id: $this.find("td[data-field='option_id']").text(),
                     code: code,
                     value: $this.find("td[data-field='value']").text(),
-                    entity_id: $this.find("td[data-field='entity_id']").text(),
+                    eav_entity_id: $this.find("td[data-field='eav_entity_id']").text(),
                     attribute_id: $this.find("td[data-field='attribute_id']").text(),
                     create_time: $this.find("td[data-field='create_time']").text(),
                     update_time: $this.find("td[data-field='update_time']").text()
@@ -786,8 +786,8 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
             return false
         }
 
-        let entity_id = getEntityId()
-        if (!entity_id) {
+        let eav_entity_id = getEavEntityId()
+        if (!eav_entity_id) {
             Swal.fire({
                 title: '@lang{请先选择实体再操作！}',
                 text: '@lang{当前实体为空！无法创建属性配置项！}',
@@ -887,7 +887,7 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
         const optionIdCell = $('<td data-field="option_id">').text(0);
         const codeCell = $('<td data-field="code">').text(codeV);
         const valueCell = $('<td data-field="value">').text(valueV);
-        const entityCell = $('<td data-field="entity_id">').text(entity_id);
+        const entityCell = $('<td data-field="eav_entity_id">').text(eav_entity_id);
         const attributeCell = $('<td data-field="attribute_id">').text(attribute_id);
         const createdTimeCell = $('<td data-field="create_time" >').text(createTimeV);
         const updateTimeCell = $('<td data-field="update_time" >').text(updateTimeV);
@@ -1019,7 +1019,7 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
                                         </span>`)
             $.ajax({
                 url: '@backend-url("*/backend/attribute/search")?field=code&limit=1&search=' + search +
-                    '&entity_id=' + getEntityId() + '&set_id=' + getSetId() + '&group_id=' + getGroupId(),
+                    '&eav_entity_id=' + getEavEntityId() + '&set_id=' + getSetId() + '&group_id=' + getGroupId(),
                 success: function (res) {
                     if (res['msg']) {
                         Swal.fire(
@@ -1058,7 +1058,7 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
                                         </span>`)
             $.ajax({
                 url: '@backend-url("*/backend/attribute/search")?field=name&limit=1&search=' + search +
-                    '&entity_id=' + getEntityId() + '&set_id=' + getSetId() + '&group_id=' + getGroupId(),
+                    '&eav_entity_id=' + getEavEntityId() + '&set_id=' + getSetId() + '&group_id=' + getGroupId(),
                 success: function (res) {
                     if (res['msg']) {
                         Swal.fire(
@@ -1107,8 +1107,8 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
         //show.bs.offcanvas
         let offcanvasButtonOptionAdd = $('#offcanvasButtonOptionAdd')
         offcanvasButtonOptionAdd.on('show.bs.offcanvas', function () {
-            let entity_id = $('#search-entity-result option:selected').val()
-            if (!entity_id) {
+            let eav_entity_id = $('#search-entity-result option:selected').val()
+            if (!eav_entity_id) {
                 Swal.fire({
                     title: '@lang{请先选择实体再操作！}',
                     text: '@lang{当前实体为空！无法创建属性配置项！}',
@@ -1153,7 +1153,7 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
                                         </span>`)
             $.ajax({
                 url: '@backend-url("*/backend/attribute/option/search")?field=value&limit=1&search=' + search +
-                    '&entity_id=' + getEntityId() + '&attribute_id=' + getAttributeID(),
+                    '&eav_entity_id=' + getEavEntityId() + '&attribute_id=' + getAttributeID(),
                 success: function (res) {
                     if (res['msg']) {
                         Swal.fire(
@@ -1198,7 +1198,7 @@ $themeConfig = ObjectManager::getInstance(\Weline\Backend\Block\ThemeConfig::cla
                                         </span>`)
             $.ajax({
                 url: '@backend-url("*/backend/attribute/option/search")?field=code&limit=1&search=' + search +
-                    '&entity_id=' + getEntityId() + '&attribute_id=' + getAttributeID(),
+                    '&eav_entity_id=' + getEavEntityId() + '&attribute_id=' + getAttributeID(),
                 success: function (res) {
                     if (res['msg']) {
                         Swal.fire(

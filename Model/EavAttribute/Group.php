@@ -108,7 +108,7 @@ class Group extends \Weline\Framework\Database\Model
         return $this->setData(self::fields_set_id, $set_id);
     }
 
-    function getEntityId()
+    function getEavEntityId()
     {
         return $this->getData(self::fields_eav_entity_id);
     }

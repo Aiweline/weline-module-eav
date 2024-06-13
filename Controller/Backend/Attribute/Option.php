@@ -36,12 +36,12 @@ Option extends BackendController
     {
         $field        = $this->request->getGet('field');
         $limit        = $this->request->getGet('limit');
-        $entity_id    = $this->request->getGet('entity_id');
+        $eav_entity_id    = $this->request->getGet('eav_entity_id');
         $attribute_id = $this->request->getGet('attribute_id');
         $search       = $this->request->getGet('search');
-        $json         = ['items' => [], 'entity_id' => $entity_id, 'attribute_id' => $attribute_id, 'limit' => $limit,
+        $json         = ['items' => [], 'eav_entity_id' => $eav_entity_id, 'attribute_id' => $attribute_id, 'limit' => $limit,
             'search' => $search];
-        if (empty($entity_id)) {
+        if (empty($eav_entity_id)) {
             $json['msg'] = __('请先选择实体后操作！');
             return $this->fetchJson($json);
         }
@@ -49,7 +49,7 @@ Option extends BackendController
             $json['msg'] = __('请先选择属性后操作！');
             return $this->fetchJson($json);
         }
-        $this->option->where('entity_id', $entity_id)
+        $this->option->where('eav_entity_id', $eav_entity_id)
             ->where('attribute_id', $attribute_id);
         if ($field && $search) {
             $this->option->where($field, $search);
@@ -87,7 +87,7 @@ Option extends BackendController
         try {
             $result = $optionModel->setData($this->request->getPost())
                 ->forceCheck(true,
-                    [EavAttribute\Option::fields_entity_id, EavAttribute\Option::fields_attribute_id,
+                    [EavAttribute\Option::fields_eav_entity_id, EavAttribute\Option::fields_attribute_id,
                         EavAttribute\Option::fields_CODE,]
                 )->save();
             $this->getMessageManager()->addSuccess(__('添加配置项成功！'));
@@ -114,7 +114,7 @@ Option extends BackendController
         try {
             $result       = $optionModel->setData($this->request->getPost())
                 ->forceCheck(true,
-                    [EavAttribute\Option::fields_entity_id, EavAttribute\Option::fields_attribute_id, EavAttribute\Option::fields_entity_id]
+                    [EavAttribute\Option::fields_eav_entity_id, EavAttribute\Option::fields_attribute_id, EavAttribute\Option::fields_eav_entity_id]
                 )->save();
             $json['code'] = 1;
             $json['msg']  = __('添加配置项成功！');
@@ -159,7 +159,7 @@ Option extends BackendController
         $option = $this->option->where([
             'code' => $code,
             'attribute_id' => $this->request->getPost('attribute_id'),
-            'entity_id' => $this->request->getPost('entity_id'),
+            'eav_entity_id' => $this->request->getPost('eav_entity_id'),
         ])->find()->fetch();
         if (!$option->getId()) {
             $json['msg'] = __('配置项不存在！');
@@ -169,7 +169,7 @@ Option extends BackendController
             $this->option->setData([
                 'code' => $this->request->getPost('code'),
                 'attribute_id' => $this->request->getPost('attribute_id'),
-                'entity_id' => $this->request->getPost('entity_id'),
+                'eav_entity_id' => $this->request->getPost('eav_entity_id'),
                 'name' => $this->request->getPost('name'),
             ])->save();
             $json['code'] = 1;

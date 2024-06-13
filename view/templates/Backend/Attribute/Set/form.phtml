@@ -80,11 +80,11 @@ $themeConfig = \Weline\Framework\Manager\ObjectManager::getInstance(\Weline\Back
                                             <label class='form-label' for='validationEntity'>
                                                 <lang>实体</lang>
                                             </label>
-                                            <select type='text' class='form-control' name='entity_id' data-parsley-minlength='3'
+                                            <select type='text' class='form-control' name='eav_entity_id' data-parsley-minlength='3'
                                                     id='validationEntity'
                                                     required=''>
                                                 <foreach name='entities'>
-                                                    <option value='{{v.entity_id}}' @if{set.entity_id=== v.entity_id=> 'selected'}>{{v.name}}</option>
+                                                    <option value='{{v.eav_entity_id}}' @if{set.eav_entity_id=== v.eav_entity_id=> 'selected'}>{{v.name}}</option>
                                                 </foreach>
                                             </select>
                                             <div class='valid-feedback'>

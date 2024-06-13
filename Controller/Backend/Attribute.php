@@ -48,8 +48,8 @@ class Attribute extends \Weline\Framework\App\Controller\BackendController
     public function index()
     {
         $this->eavAttribute->addLocalDescription()
-            ->joinModel(EavEntity::class, 'entity', 'main_table.eav_entity_id=entity.entity_id', 'left', 'entity.name as entity_name')
-            ->joinModel(EavEntity\LocalDescription::class, 'entity_local', 'main_table.eav_entity_id=entity_local.entity_id and entity_local.local_code=\'' . Cookie::getLangLocal() . '\'', 'left', 'entity_local.name as entity_local_name');
+            ->joinModel(EavEntity::class, 'entity', 'main_table.eav_entity_id=entity.eav_entity_id', 'left', 'entity.name as entity_name')
+            ->joinModel(EavEntity\LocalDescription::class, 'entity_local', 'main_table.eav_entity_id=entity_local.eav_entity_id and entity_local.local_code=\'' . Cookie::getLangLocal() . '\'', 'left', 'entity_local.name as entity_local_name');
         $this->eavAttribute->joinModel(Type::class, 'type');
         if ($search = $this->request->getGet('search')) {
             $this->eavAttribute->where('concat(main_table.name,main_table.code,type.name,type.code,local.name,entity.name,entity.code,entity_local.name)', "%$search%", 'like');
@@ -82,12 +82,12 @@ class Attribute extends \Weline\Framework\App\Controller\BackendController
     {
         $field     = $this->request->getGet('field');
         $limit     = $this->request->getGet('limit');
-        $entity_id = $this->request->getGet('entity_id');
+        $eav_entity_id = $this->request->getGet('eav_entity_id');
         $set_id    = $this->request->getGet('set_id');
         $group_id  = $this->request->getGet('group_id');
         $search    = $this->request->getGet('search');
-        $json      = ['items' => [], 'entity_id' => $entity_id, 'set_id' => $set_id, 'group_id' => $group_id, 'limit' => $limit, 'search' => $search];
-        if (empty($entity_id)) {
+        $json      = ['items' => [], 'eav_entity_id' => $eav_entity_id, 'set_id' => $set_id, 'group_id' => $group_id, 'limit' => $limit, 'search' => $search];
+        if (empty($eav_entity_id)) {
             $json['msg'] = __('请先选择实体后操作！');
             return $this->fetchJson($json);
         }
@@ -99,7 +99,7 @@ class Attribute extends \Weline\Framework\App\Controller\BackendController
             $json['msg'] = __('请先选择属性组后操作！');
             return $this->fetchJson($json);
         }
-        $this->eavAttribute->where('entity_id', $entity_id)
+        $this->eavAttribute->where('eav_entity_id', $eav_entity_id)
             ->where('set_id', $set_id)
             ->where('group_id', $group_id);
         if ($field && $search) {
@@ -173,7 +173,7 @@ class Attribute extends \Weline\Framework\App\Controller\BackendController
             foreach ($options as $option) {
                 $option['option_id']    = $option['option_id'] ?? 0;
                 $option['attribute_id'] = $attribute_id;
-                $option['entity_id']    = $base['entity_id'] ?? 0;
+                $option['eav_entity_id']    = $base['eav_entity_id'] ?? 0;
                 $optionModels[]         = ObjectManager::make(EavAttribute\Option::class, ['data' => $option]);
             }
             $this->eavAttribute->setOptions($optionModels);
@@ -248,6 +248,6 @@ class Attribute extends \Weline\Framework\App\Controller\BackendController
     public function postTranslate()
     {
         $attribute_id = $this->request->getPost('attribute_id');
-        $entity_id    = $this->request->getPost('entity_id');
+        $eav_entity_id    = $this->request->getPost('eav_entity_id');
     }
 }

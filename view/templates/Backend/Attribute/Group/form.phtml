@@ -87,11 +87,11 @@ $themeConfig = \Weline\Framework\Manager\ObjectManager::getInstance(\Weline\Back
                                             <label class='form-label' for='validationEntity'>
                                                 <lang>实体</lang>
                                             </label>
-                                            <select type='text' class='form-control' name='entity_id' data-parsley-minlength='3'
+                                            <select type='text' class='form-control' name='eav_entity_id' data-parsley-minlength='3'
                                                     id='validationEntity'
                                                     required=''>
                                                 <foreach name='entities'>
-                                                    <option value='{{v.entity_id}}' @if{group.entity_id== v.entity_id=> 'selected'}>{{v.name}}</option>
+                                                    <option value='{{v.eav_entity_id}}' @if{group.eav_entity_id== v.eav_entity_id=> 'selected'}>{{v.name}}</option>
                                                 </foreach>
                                             </select>
                                             <div class='valid-feedback'>
@@ -153,8 +153,8 @@ $themeConfig = \Weline\Framework\Manager\ObjectManager::getInstance(\Weline\Back
         renderAttributeSet(initSelected)
     }
 
-    function renderAttributeSet(entity_id) {
-        $.get("@backend-url('*/backend/attribute/set/api-search')?entity_id=" + entity_id).then((res) => {
+    function renderAttributeSet(eav_entity_id) {
+        $.get("@backend-url('*/backend/attribute/set/api-search')?eav_entity_id=" + eav_entity_id).then((res) => {
             let items = res['items']
             validationSet.empty()
             for (const itemsKey in items) {
