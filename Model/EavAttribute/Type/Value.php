@@ -119,8 +119,8 @@ class Value extends \Weline\Framework\Database\Model
                         }
                     }
                     $table
-                        ->addIndex(TableInterface::index_type_KEY, 'EAV_ATTRIBUTE_ID', 'attribute_id')
-                        ->addIndex(TableInterface::index_type_KEY, 'EAV_ENTITY_ID', 'eav_entity_id')
+                        ->addIndex(TableInterface::index_type_KEY, 'idx_ATTRIBUTE_ID', 'attribute_id')
+                        ->addIndex(TableInterface::index_type_KEY, 'idx_ENTITY_ID', 'entity_id')
                         ->addConstraints('unique index(`' . self::fields_attribute_id . '`,`' . self::fields_entity_id . '`)')
                         ->create();
                 }

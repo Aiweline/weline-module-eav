@@ -73,8 +73,8 @@ class EavEntity extends Model
                             self::fields_class => $eav,
                             self::fields_name => $eavEntity->getEntityName(),
                             self::fields_is_system => 1,
-                            self::fields_eav_entity_id_field_type => $eavEntity->getEntityFieldIdType(),
-                            self::fields_eav_entity_id_field_length => $eavEntity->getEntityFieldIdLength(),
+                            self::fields_eav_entity_id_field_type => $eavEntity->getEavEntityFieldIdType(),
+                            self::fields_eav_entity_id_field_length => $eavEntity->getEavEntityFieldIdLength(),
                         ]
                     )
                     ->forceCheck(true, $this::fields_code)
