@@ -183,7 +183,7 @@ class Attribute extends \Weline\Framework\App\Controller\BackendController
         $json['data']['options']   = $this->eavAttribute->getOptions();
         $json['msg']               = __('保存成功');
         # 删除实时保存的数据
-        $this->backendUserData->where('backend_user_id', $this->session->getLoginUserID())->where('scope', 'attribute')->delete();
+        $this->backendUserData->where('backend_user_id', $this->session->getLoginUserID())->where('scope', 'attribute')->delete()->fetch();
         return $this->fetchJson($json);
     }
 
@@ -232,7 +232,7 @@ class Attribute extends \Weline\Framework\App\Controller\BackendController
         $json = ['code' => 0, 'msg' => ''];
         if ($id = $this->request->getGet('id')) {
             try {
-                $this->eavAttribute->load($id)->delete();
+                $this->eavAttribute->load($id)->delete()->fetch();
             } catch (\ReflectionException|Exception|Core $e) {
                 $json['msg'] = __('删除失败，请联系管理员') . (DEV ? '：' . $e->getMessage() : '');
                 return $this->fetchJson($json);

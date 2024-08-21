@@ -20,21 +20,20 @@ class YesNo implements EavModelInterface
 
     function getHtml(EavAttribute &$attribute, mixed $value, string &$label_class, array &$attrs, array &$option_items = []): string
     {
-        $options = $this->getModelData();
-        foreach ($option_items as $key => $option_item) {
-            $options[$key] = $option_item;
-        }
-        $attrStr = '';
-        foreach ($attrs as $key => $attr_val) {
-            if(is_array($attr_val)){
-                $attrStr .= ' ' . $key . '="' . implode(',', $attr_val) . '"';
-            }else{
-                $attrStr .= ' ' . $key . '="' . $attr_val . '"';
+        $dependence = $attribute->getDependence();
+        if(!$dependence){
+            $options = $this->getModelData();
+            foreach ($option_items as $key => $option_item) {
+                $options[$key] = $option_item;
             }
+        }else{
+            $options[''] = __('-请选择-%1-依赖项-',$dependence);
         }
+
         $type = $attribute->getType();
-        $html = '<label class="' . $label_class . '">' .($type->getRequired()?'<span class="required">*</span>':'') . __($attribute->getName()) . '</label>
-<select name="' . $attribute->getCode() . '" ' . $attrStr . '>';
+        $attrStr = $type->processElementAttr($attribute, $attrs);
+        $html = '
+        <select ' . $attrStr . '>';
         foreach ($options as $key => $v) {
             if ($value == $key) {
                 $html .= '<option value="' . $key . '" selected>' . $v . '</option>';
@@ -43,14 +42,21 @@ class YesNo implements EavModelInterface
             $html .= '<option value="' . $key . '">' . $v . '</option>';
         }
         $html .= '</select>';
+        $type::processLabel($attribute, $label_class, $html);
+        $type::processDependence($attribute, $html);
         return $html;
     }
 
-    public function getModelData(): mixed
+    public function getModelData(string|array $dependenceValues = []): mixed
     {
         return [
             '1' => __('是'),
             '0' => __('否'),
         ];
+    }
+
+    static function dependenceProcess(mixed $dependenceValue): mixed
+    {
+        return '';
     }
 }

@@ -121,7 +121,7 @@ class Set extends \Weline\Framework\App\Controller\BackendController
                 $this->getMessageManager()->addWarning(__('属性集内还有属性组！不能删除！'));
                 $this->redirect($this->_url->getBackendUrl('*/backend/attribute/set'));
             }
-            $this->set->delete();
+            $this->set->delete()->fetch();
             $this->getMessageManager()->addSuccess(__('删除成功！'));
         } else {
             $this->getMessageManager()->addError(__('找不到要操作的代码！'));

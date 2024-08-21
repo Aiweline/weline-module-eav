@@ -92,12 +92,12 @@ abstract class EavModel extends Model implements EavInterface
         return $this->eav_Entity()->getId();
     }
 
-    public function getEavEntityFieldIdType(): string
+    public function getEntityFieldIdType(): string
     {
         return $this->eav_entity_id_field_type ?: $this::eav_entity_id_field_type;
     }
 
-    public function getEavEntityFieldIdLength(): int
+    public function getEntityFieldIdLength(): int
     {
         return $this->eav_entity_id_field_length ?: $this::eav_entity_id_field_length;
     }
@@ -315,7 +315,7 @@ abstract class EavModel extends Model implements EavInterface
             $attribute = clone $this->attribute;
             $attribute->clear()->where($this->attribute::fields_eav_entity_id, $this->getEavEntityId())
                 ->where($this->attribute::fields_code, $code)
-                ->delete();
+                ->delete()->fetch();
             return true;
         } catch (\ReflectionException|Exception|Core $e) {
             return false;
@@ -333,7 +333,7 @@ abstract class EavModel extends Model implements EavInterface
             $valueModel = clone $attribute->w_getValueModel();
             $valueModel->where('attribute_id', $attribute->getId())
                 ->where('eav_entity_id', $this->getId())
-                ->delete();
+                ->delete()->fetch();
             return true;
         } catch (\ReflectionException|Exception|Core $e) {
             return false;

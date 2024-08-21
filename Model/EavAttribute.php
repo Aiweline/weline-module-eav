@@ -45,6 +45,7 @@ class EavAttribute extends \Weline\Framework\Database\Model
     public const fields_is_enable = 'is_enable';
     public const fields_model_class = 'model_class';
     public const fields_default_value = 'default_value';
+    public const fields_dependence = 'dependence'; # 多个依赖以英文逗号隔开,demo1,demo2
 
     public const value_key = 'value';
     public const swatch_value_key = 'swatch_value';
@@ -195,6 +196,13 @@ class EavAttribute extends \Weline\Framework\Database\Model
                     '',
                     '默认值'
                 )
+                ->addColumn(
+                    self::fields_dependence,
+                    TableInterface::column_type_VARCHAR,
+                    128,
+                    'default null',
+                    '依赖属性:多个属性以英文逗号隔开,demo1,demo2'
+                )
                 ->addIndex(TableInterface::index_type_UNIQUE, 'idx_unique_entity_and_code', [self::fields_code, self::fields_eav_entity_id])
                 ->addIndex(TableInterface::index_type_KEY, 'idx_eav_entity_id', self::fields_eav_entity_id)
                 ->addIndex(TableInterface::index_type_KEY, 'idx_set_id', self::fields_set_id)
@@ -217,6 +225,13 @@ class EavAttribute extends \Weline\Framework\Database\Model
         throw new Exception(__('属性没有实体！'));
     }
 
+    public function getEavEntity(): EavEntity
+    {
+        /**@var EavEntity $eavEntity */
+        $eavEntity = ObjectManager::getInstance(EavEntity::class);
+        return $eavEntity->load($this->getEavEntityId());
+    }
+
     public function loadByCode(string $code)
     {
         return $this->load('code', $code);
@@ -230,6 +245,16 @@ class EavAttribute extends \Weline\Framework\Database\Model
     public function setCode(string $code): static
     {
         return $this->setData(self::fields_code, $code);
+    }
+
+    public function getDependence(): string
+    {
+        return $this->getData(self::fields_dependence) ?: '';
+    }
+
+    public function setDependence(string $dependence): static
+    {
+        return $this->setData(self::fields_dependence, $dependence);
     }
 
     public function getTypeId(): int
@@ -283,7 +308,7 @@ class EavAttribute extends \Weline\Framework\Database\Model
 
     public function getOptions(): array
     {
-        return ObjectManager::getInstance(Option::class)->where(self::fields_ID, $this->getId())->select()->fetchOrigin();
+        return ObjectManager::getInstance(Option::class)->reset()->where(self::fields_ID, $this->getId())->select()->fetchOrigin();
     }
 
     /**
@@ -352,16 +377,16 @@ class EavAttribute extends \Weline\Framework\Database\Model
         if (!$this->getCode()) {
             throw new Exception(__('该属性没有code代码！'));
         }
-        if($this->getData($this::value_key)){
-            if($return_attribute){
+        if ($this->getData($this::value_key)) {
+            if ($return_attribute) {
                 return $this;
             }
             return $this->getData($this::value_key);
         }
-        $entity_id       = $entity_id ?: $this->current_getEntity()->getId();
+        $entity_id = $entity_id ?: $this->current_getEntity()->getId();
         $this->setData('entity_id', $entity_id);
         if ($entity_id) {
-            $valueModel = $this->w_getValueModel()->setAttribute($this);
+            $valueModel = $this->w_getValueModel();
             $valueModel
                 ->fields(Value::fields_value)
                 ->where(Value::fields_attribute_id, $this->getId())
@@ -472,9 +497,10 @@ class EavAttribute extends \Weline\Framework\Database\Model
             return $this;
         }
         if (is_string($value) || is_int($value)) {
-            $valueModel     =$this->w_getValueModel();
-            $data           = ['entity_id' => $entity_id, 'attribute_id' => $this->getId(),
-                'value' => $value];
+            $valueModel     = $this->w_getValueModel();
+            $valueModel->reset()->where(['entity_id' => $entity_id, 'attribute_id' => $this->getId()])
+                ->delete()->fetch();
+            $data           = ['entity_id' => $entity_id, 'attribute_id' => $this->getId(), 'value' => $value];
             $bindFieldsData = [];
             if ($swatch_image) {
                 $bindFieldsData['swatch_image'] = $swatch_image;
@@ -490,8 +516,9 @@ class EavAttribute extends \Weline\Framework\Database\Model
                 $data                        = array_merge($data, $bindFieldsData);
             }
             try {
-                $valueModel->reset()->clearData()->forceCheck()->setData($data)
-                    ->save();
+                $valueModel->reset()
+                    ->insert($data, ['entity_id', 'attribute_id', 'value'])
+                    ->fetch();
             } catch (\Throwable $e) {
                 throw new Exception(__('属性值保存失败！信息：%1', $e->getMessage()));
             }
@@ -500,11 +527,11 @@ class EavAttribute extends \Weline\Framework\Database\Model
                 throw new Exception(__('单值属性只能接收一个值！当前值：%1', w_var_export($value, true)));
             }
             $valueModel = $this->w_getValueModel();
-            $valueModel->where(['entity_id' => $entity_id, 'attribute_id' => $this->getId()])->delete();
+            $valueModel->where(['entity_id' => $entity_id, 'attribute_id' => $this->getId()])->delete()->fetch();
             $data           = [];
             $bindFieldsData = [];
             foreach ($value as $item) {
-                $data_tmp = ['eav_entity_id' => $entity_id, 'value' => $item, 'attribute_id' => $this->getId()];
+                $data_tmp = ['entity_id' => $entity_id, 'value' => $item, 'attribute_id' => $this->getId()];
                 if (isset($item['swatch_image'])) {
                     $bindFieldsData['swatch_image'] = $swatch_image;
                 }
@@ -524,9 +551,9 @@ class EavAttribute extends \Weline\Framework\Database\Model
                 $valueModel->bindModelFields(array_keys($bindFieldsData));
             }
             try {
-                foreach ($data as $datum) {
-                    $valueModel->reset()->clearData()->forceCheck()->setData($datum)->save();
-                }
+                $valueModel->reset()
+                    ->insert($data, ['entity_id', 'attribute_id', 'value'])
+                    ->fetch();
             } catch (\Throwable $e) {
                 throw new Exception(__('属性值保存失败！信息：%1', $e->getMessage()));
             }
@@ -595,7 +622,7 @@ class EavAttribute extends \Weline\Framework\Database\Model
     {
         /**@var \Weline\Eav\Model\EavAttribute\Option $optionModel */
         $optionModel = ObjectManager::getInstance(\Weline\Eav\Model\EavAttribute\Option::class);
-        return $optionModel->where($optionModel::fields_attribute_id, $this->getId())
+        return clone $optionModel->reset()->clearData()->where($optionModel::fields_attribute_id, $this->getId())
             ->where($optionModel::fields_eav_entity_id, $this->getEavEntityId());
     }
 
@@ -641,6 +668,7 @@ class EavAttribute extends \Weline\Framework\Database\Model
             }
             /**@var \Weline\Eav\Model\EavAttribute\Type $typeModel */
             $typeModel = ObjectManager::getInstance(\Weline\Eav\Model\EavAttribute\Type::class);
+            $typeModel->reset()->clearData();
             $typeModel->load('code', $type_code);
             if ($typeModel->getId()) {
                 $this->exist_types[$type_code] = $typeModel;
@@ -667,26 +695,34 @@ class EavAttribute extends \Weline\Framework\Database\Model
             return $this->type;
         }
         /**@var \Weline\Eav\Model\EavAttribute\Type $typeModel */
-        $typeModel = ObjectManager::getInstance(Type::class);
-        $this->type = $typeModel->reset()->clearData()->load($this->getTypeId());
+        $typeModel  = ObjectManager::getInstance(Type::class);
+        $this->type = clone $typeModel->reset()->clearData()->load($this->getTypeId());
         return $this->type;
     }
+
     public function resetTypeModel(): Type
     {
         /**@var \Weline\Eav\Model\EavAttribute\Type $typeModel */
-        $typeModel = ObjectManager::getInstance(Type::class);
-        $this->type = $typeModel->reset()->clearData()->load($this->getTypeId());
+        $typeModel  = ObjectManager::getInstance(Type::class);
+        $this->type = clone $typeModel->reset()->clearData()->load($this->getTypeId());
         return $this->type;
     }
 
     public function getType(string $type_code = ''): Type
     {
-        if (empty($var)) {
-            $this->exist_types[$type_code] = $this->getTypeModel();
+        if ($type_code) {
+            if (empty($this->exist_types[$type_code])) {
+                $this->exist_types[$type_code] = $this->getTypeModel();
+                return $this->exist_types[$type_code];
+            }
+            $this->existType($type_code);
             return $this->exist_types[$type_code];
+        } else {
+            /**@var Type $type */
+            $type = ObjectManager::getInstance(Type::class);
+            $type->load($this->getTypeId());
+            return $type;
         }
-        $this->existType($type_code);
-        return $this->exist_types[$type_code];
     }
 
     public function getHtml(array $options = [])
@@ -694,8 +730,10 @@ class EavAttribute extends \Weline\Framework\Database\Model
         $type    = $this->getTypeModel();
         $options = $options ?: $this->getOptions();
         try {
-            $options['values'] = $options['values'] ?? $this->getValue();
-        } catch (Exception $e) {
+            if (!isset($options['values']) and isset($options['entity'])) {
+                $options['values'] = $this->getValue();
+            }
+        } catch (\Exception $e) {
             $options['values'] = [];
         }
         return $type->getHtml($this, $options);
@@ -713,16 +751,17 @@ class EavAttribute extends \Weline\Framework\Database\Model
      * @EMAIL aiweline@qq.com
      * @DateTime: 2023/3/15 21:13
      * 参数区：
-     * @return \Weline\Eav\Model\EavAttribute\Type\Value
+     * @return Value
+     * @throws Exception
+     * @throws \ReflectionException
      */
     public function w_getValueModel(): \Weline\Eav\Model\EavAttribute\Type\Value
     {
         if (!$this->value) {
             /**@var \Weline\Eav\Model\EavAttribute\Type\Value $valueModel */
-            $valueModel = ObjectManager::getInstance(\Weline\Eav\Model\EavAttribute\Type\Value::class);
-            $valueModel->reset()->clearData();
+            $valueModel = ObjectManager::make(\Weline\Eav\Model\EavAttribute\Type\Value::class);
             $valueModel->setAttribute($this);
-            $this->value = $valueModel;
+            $this->value = clone $valueModel;
         }
         return $this->value;
     }
@@ -764,5 +803,24 @@ class EavAttribute extends \Weline\Framework\Database\Model
             }
         }
         return $this->currentEntity;
+    }
+
+
+    public function getEavEntityAttributeValueTable(): string
+    {
+        if (!$this->getId()) {
+            return '';
+        }
+        # 查询属性所属eav实体
+        $eav_entity = $this->getEavEntity();
+        if (!$eav_entity->getId()) {
+            return '';
+        }
+        # 查询属性所属eav类型
+        $type = $this->getType();
+        if (!$eav_entity->getId()) {
+            return '';
+        }
+        return $this->getTable('eav_' . $eav_entity->getCode() . '_' . $type->getCode());
     }
 }

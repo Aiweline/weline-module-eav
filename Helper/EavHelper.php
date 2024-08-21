@@ -114,7 +114,7 @@ class EavHelper
         return $attributeGroup;
     }
 
-    public static function getAttribute(string $entity_code, string $code, string $name,bool $is_multi,string $type_code, string $group_code = 'default', string $group_name = '默认属性组', string $set_code = 'default', string $set_name = '默认属性集'): \Weline\Eav\Model\EavAttribute
+    public static function getAttribute(string $entity_code, string $code, string $name,bool $is_multi,string $type_code,string $dependence = '', string $group_code = 'default', string $group_name = '默认属性组', string $set_code = 'default', string $set_name = '默认属性集'): \Weline\Eav\Model\EavAttribute
     {
         /** @var \Weline\Eav\Model\EavAttribute $attribute */
         $attribute = ObjectManager::make(\Weline\Eav\Model\EavAttribute::class);
@@ -131,24 +131,32 @@ class EavHelper
             /** @var \Weline\Eav\Model\EavAttribute $attribute */
             $attribute = ObjectManager::make(\Weline\Eav\Model\EavAttribute::class);
             $attribute
-                ->setEntityId($eav_entity_id)
+                ->setEavEntityId($eav_entity_id)
                 ->setCode($code)
                 ->setName($name)
                 ->setTypeId($type_id)
                 ->isSystem(true)
                 ->setSetId($set_id)
+                ->setMultipleValued($is_multi)
                 ->setGroupId($group_id)
+                ->setDependence($dependence)
                 ->save();
             if (!$attribute->getId()) {
                 throw new \Exception('创建属性失败');
             }
         } else {
-            $attribute->setTypeId($type_id);
-            $attribute->isSystem(true);
-            $attribute->setSetId($set_id);
-            $attribute->setMultipleValued($is_multi);
-            $attribute->setGroupId($group_id);
-            $attribute->save();
+            $attribute->where($attribute::fields_type_id,$type_id)
+                ->where($attribute::fields_eav_entity_id,$eav_entity_id)
+                ->where($attribute::fields_attribute_id,$attribute->getId())
+                ->where($attribute::fields_is_system,1)
+                ->where($attribute::fields_code,$code)
+                ->update([
+                    $attribute::fields_name=>$name,
+                    $attribute::fields_group_id=>$group_id,
+                    $attribute::fields_set_id=>$set_id,
+                    $attribute::fields_multiple_valued=>(int)$is_multi,
+                ])
+                ->fetch();
         }
         return $attribute;
     }

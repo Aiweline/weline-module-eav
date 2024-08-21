@@ -139,7 +139,7 @@ Option extends BackendController
                 $json['msg'] = __('配置项不存在！');
                 return $this->fetchJson($json);
             }
-            $option->delete();
+            $option->delete()->fetch();
             $json['code'] = 1;
             $json['msg']  = __('操作成功：');
         } catch (\ReflectionException|Core|Exception $e) {

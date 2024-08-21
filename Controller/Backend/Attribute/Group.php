@@ -151,7 +151,7 @@ class Group extends \Weline\Framework\App\Controller\BackendController
                     $this->redirect($this->_url->getBackendUrl('*/backend/attribute/group'));
                 }
                 try {
-                    $group->delete();
+                    $group->delete()->fetch();
                     $this->getMessageManager()->addSuccess(__('删除成功！'));
                 } catch (\ReflectionException|Core|Exception $e) {
                     if (DEV) $this->getMessageManager()->addException($e);

@@ -15,11 +15,11 @@ namespace Weline\Eav\Model\EavAttribute;
 
 use Weline\Eav\EavModelInterface;
 use Weline\Eav\Model\EavAttribute;
-use Weline\Eav\Ui\EavModel\Select\File;
-use Weline\Eav\Ui\EavModel\Select\Site;
 use Weline\Eav\Ui\EavModel\Select\YesNo;
+use Weline\Framework\App\Env;
 use Weline\Framework\App\Exception;
 use Weline\Framework\Database\Api\Db\Ddl\TableInterface;
+use Weline\Framework\Http\Request;
 use Weline\Framework\Manager\ObjectManager;
 use Weline\Framework\Setup\Data\Context;
 use Weline\Framework\Setup\Db\ModelSetup;
@@ -211,6 +211,22 @@ class Type extends \Weline\Framework\Database\Model
                         self::fields_name => '数字输入',
                     ],
                     [
+                        self::fields_code => 'input_decimal_2',
+                        self::fields_field_type => TableInterface::column_type_INTEGER,
+                        self::fields_frontend_attrs => 'type="number" step="0.01"',
+                        self::fields_field_length => 11,
+                        self::fields_is_swatch => 0,
+                        self::fields_swatch_image => 0,
+                        self::fields_swatch_color => 0,
+                        self::fields_swatch_text => 0,
+                        self::fields_element => 'input',
+                        self::fields_model_class => '',
+                        self::fields_model_class_data => '',
+                        self::fields_required => 1,
+                        self::fields_default_value => '',
+                        self::fields_name => '数字输入',
+                    ],
+                    [
                         self::fields_code => 'input_bool',
                         self::fields_field_type => TableInterface::column_type_SMALLINT,
                         self::fields_frontend_attrs => 'type="number"',
@@ -374,6 +390,7 @@ class Type extends \Weline\Framework\Database\Model
                 self::fields_code
             )->fetch();
         }
+
     }
 
     public function getName(): string
@@ -456,9 +473,9 @@ class Type extends \Weline\Framework\Database\Model
         return $this->setData(self::fields_model_class_data, $model_data);
     }
 
-    public function getDefaultValue(): string
+    public function getDefaultValue(): string|null
     {
-        return $this->getData(self::fields_default_value) ?: '';
+        return $this->getData(self::fields_default_value) ?: null;
     }
 
     public function setDefaultValue(string $default_value): static
@@ -547,7 +564,7 @@ class Type extends \Weline\Framework\Database\Model
         if ($model_class_data = $type->getModelClassData()) {
             $model_class_data = json_decode($model_class_data, true);
             # 数组合并，兼容键是数字时的合并
-            if ($model_class_data and $option_items) {
+            if ($model_class_data) {
                 foreach ($model_class_data as $key => $model_class_data_item) {
                     $option_items[$key] = $model_class_data_item;
                 }
@@ -591,7 +608,7 @@ class Type extends \Weline\Framework\Database\Model
      * @param EavAttribute $attribute
      * @param array $options ['options' => ['1' => '选项1', '2' => '选项2'], 'attrs' => ['class' => 'form-control'], 'label_class' => 'label-class']
      * @return string
-     * @throws Exception
+     * @throws \Exception
      */
     function getHtml(EavAttribute &$attribute, array &$options = []): string
     {
@@ -603,37 +620,73 @@ class Type extends \Weline\Framework\Database\Model
         }
         if ($value === null) {
             if (isset($options['entity']) and $options['entity']) {
-                $value = $attribute->getValue();
-            }else{
+                try {
+                    $value = $attribute->getValue();
+                } catch (Exception $e) {
+                    $value = $this->getDefaultValue();
+                }
+            } else {
                 $value = $this->getDefaultValue();
             }
         }
+
         # 如果有模型则直接返回模型
         if ($this->getModelClass()) {
             /** @var EavModelInterface $model */
             $model = ObjectManager::getInstance($this->getModelClass());
             return $model->getHtml($attribute, $value, $label_class, $attrs, $option_items);
+        } else {
+            $html = '';
+            $element = $this->getElement();
+            switch ($element) {
+                case 'select':
+                    $options = array_merge($options, json_decode($this->getModelClassData(), true));
+                    if (empty($options)) {
+                        throw new \Exception(__('Eav属性输入：缺少select选项'));
+                    }
+                    break;
+                case 'input':
+                case 'checkbox':
+                case 'radio':
+                    $attrs['value'] = $value;
+                    break;
+                case 'textarea':
+                default:
+                    break;
+            }
+            $attrsString = $this->processElementAttr($attribute, $attrs);
+            switch ($element) {
+                case 'select':
+                    $html .= '<select ' . $attrsString . '>';
+                    foreach ($option_items as $k => $v) {
+                        $html .= '<option value="' . $k . '" ' . ($value == $k ? 'selected' : '') . '>' . $v . '</option>';
+                    }
+                    $html .= '</select>';
+                    break;
+                case 'textarea':
+                    $html .= '<textarea ' . $attrsString . '>' . $value . '</textarea>';
+                    break;
+                case 'radio':
+                case 'checkbox':
+                default:
+                    $html .= '<input ' . $attrsString . '>';
+                    break;
+            }
+            self::processLabel($attribute, $label_class, $html);
+            self::processDependence($attribute, $html);
+            return $html;
         }
-        $element = $this->getElement();
-        switch ($element) {
-            case 'select':
-                $options = array_merge($options, json_decode($this->getModelClassData(), true));
-                if (empty($options)) {
-                    throw new \Exception(__('Eav属性输入：缺少select选项'));
-                }
-                break;
-            case 'input':
-            case 'checkbox':
-            case 'radio':
-                $attrs['value'] = $value;
-                break;
-            case 'textarea':
-            default:
-                break;
-        }
-        $attrsString = '';
+    }
+
+    function processElementAttr(EavAttribute &$attribute, array &$attrs): string
+    {
+        $type        = $attribute->getTypeModel();
         $id          = $this->getCode() . '_' . $attribute->getCode() . '_' . $this->getId();
+        $attrsString = ' id="' . $id . '" data-name="' . $type->getCode() . '" code="' . $attribute->getCode() . '" ';
         foreach ($attrs as $k => $v) {
+            if(is_array($v)){
+                $v = json_encode($v);
+            }
             switch ($k) {
                 case 'type':
                     switch ($v) {
@@ -659,24 +712,109 @@ class Type extends \Weline\Framework\Database\Model
                     break;
             }
         }
-        $html = '<label for="' . $id . '" class="' . $label_class . '">' . $attribute->getName() . '(' . $this->getName() . ')</label>';
-        switch ($element) {
-            case 'select':
-                $html .= '<select id="' . $id . '"' . $attrsString . '>';
-                foreach ($option_items as $k => $v) {
-                    $html .= '<option value="' . $k . '" ' . ($value == $k ? 'selected' : '') . '>' . $v . '</option>';
+        $attrsString .= $type->getFrontendAttrs();
+        return $attrsString;
+    }
+
+    static function processLabel(EavAttribute &$attribute, string &$label_class, string &$html): void
+    {
+        $type          = $attribute->getTypeModel();
+        $required      = $type->getRequired() ? '<span class="required">*</span>' : '';
+        $name          = __($attribute->getName());
+        $typeCode      = $type->getCode();
+        $attributeCode = $attribute->getCode();
+        $dependence = $attribute->getDependence()?'<br>'.__('依赖：').'<span class="text-info">'.$attribute->getDependence().'</span>':'';
+        $label         = <<<LABEL
+<label title="$attributeCode-$name" data-type-code="$typeCode" class="' . $label_class . '">$required $name <span class="text-primary">$attributeCode</span>$dependence</label>
+LABEL;
+        $html          = $label . $html;
+    }
+
+    static function processDependence(EavAttribute &$attribute, string &$html): void
+    {
+        $dependence    = $attribute->getDependence();
+        $attributeCode = $attribute->getCode();
+        if ($dependence) {
+            /**@var Request $req */
+            $req      = ObjectManager::getInstance(Request::class);
+            $eavModel = Env::getInstance()->getModuleByName('Weline_Eav');
+            if (isset($eavModel['router'])) {
+                $dependence       = explode(',', $dependence);
+                $eavDependenceUrl = $req->isBackend() ? $req->getUrlBuilder()->getBackendUrl($eavModel['router'] . '/backend/attribute/dependence') : $req->getUrlBuilder()->getUrl($eavModel['router'] . '/backend/attribute/dependence');
+                $js               = <<<PRE_JS
+<script>
+$(function() {
+PRE_JS;
+
+                foreach ($dependence as $dependenceItem) {
+                    $js .= <<<DEPENDENCE_JS
+                let currentAttribute = $('*[code="$attributeCode"]');
+                let dependenceAttribute = $('*[code="$dependenceItem"]');
+                let update = function() {
+                    let currentAttribute = $('*[code="$attributeCode"]');
+                    let dependenceAttribute = $('*[code="$dependenceItem"]');
+                    // 从ajax获取依赖属性的值，并更新到当前属性
+                    $.ajax({
+                        url: "$eavDependenceUrl",
+                        type: "GET",
+                        data: {
+                            d: dependenceAttribute.attr("code"),
+                            dv: dependenceAttribute.val(),
+                            a: "$attributeCode",
+                        },
+                        success: function(res) {
+                            // 渲染到当前属性,如果是input则英文逗号打断数组填入，如果是select则组装option填入
+                            let items = res['data'];
+                            console.log(items)
+                            let values = [];
+                            for(key in items) {
+                                values.push(items[key]);
+                            }
+                            let currentAttribute = $('*[code="$attributeCode"]');
+                            if(items && currentAttribute.length) {
+                                let attributeElement = currentAttribute[0];
+                                if(attributeElement.tagName === 'INPUT' || attributeElement.tagName === 'TEXTAREA') {
+                                    attributeElement.val(values.join(','));
+                                } else if(attributeElement.tagName === 'SELECT') {
+                                    let optionItems = [];
+                                    for(key in items) {
+                                        optionItems.push('<option value="' + key + '">' + items[key] + '</option>');
+                                    }
+                                    attributeElement.innerHTML = optionItems.join('');
+                                }else{
+                                    attributeElement.innerHTML = values.join('');
+                                }
+                                $('*[dependence="$attributeCode"]').parent().css("display", "block");
+                            }
+                        }
+                    })
                 }
-                $html .= '</select>';
-                break;
-            case 'textarea':
-                $html .= '<textarea id="' . $id . '" ' . $attrsString . '>' . $value . '</textarea>';
-                break;
-            case 'radio':
-            case 'checkbox':
-            default:
-                $html .= '<input id="' . $id . '" ' . $attrsString . '>';
-                break;
+                
+                let value = dependenceAttribute.val();
+                let disabled = (value === '' || ((Array.isArray(value) && value.length === 0) || dependenceAttribute.attr("disabled")));
+                dependenceAttribute.change(function() {
+                    let value = dependenceAttribute.val();
+                    let disabled = (value === '' || ((Array.isArray(value) && value.length === 0) || dependenceAttribute.attr("disabled")));
+                    if(disabled) {
+                        currentAttribute.attr("disabled", disabled);
+                        currentAttribute.parent().css("display", "none");
+                    }else{
+                        currentAttribute.attr("disabled", false);
+                        currentAttribute.parent().css("display", "block");
+                    }
+                   console.log("依赖更新：dependenceAttribute")
+                   update();
+                });
+                if(disabled) {
+                    currentAttribute.attr("disabled", true);
+                    currentAttribute.parent().css("display", "none");
+                    return;
+                }
+                update();
+DEPENDENCE_JS;
+                }
+                $html .= $js . '});</script>';
+            }
         }
-        return $html;
     }
 }
