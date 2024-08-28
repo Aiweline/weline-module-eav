@@ -52,8 +52,8 @@ interface EavModelInterface
      * @EMAIL aiweline@qq.com
      * @DateTime: 2024/7/9 下午4:16
      * 参数区：
-     * @param string $dependenceValue
+     * @param array $dependenceValue
      * @return array
      */
-//    static function dependenceProcess(mixed $dependenceValue): mixed;
+    static function dependenceProcess(array $dependenceValue=[]): mixed;
 }

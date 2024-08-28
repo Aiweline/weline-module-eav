@@ -61,7 +61,7 @@ class Option implements EavModelInterface
     }
 
 
-    static function dependenceProcess(mixed $dependenceValue): mixed
+    static function dependenceProcess(array $dependenceValue=[]): mixed
     {
         return '';
     }
