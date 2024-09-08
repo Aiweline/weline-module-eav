@@ -43,7 +43,7 @@ class EavEntity extends Model
      */
     public function setup(ModelSetup $setup, Context $context): void
     {
-        $setup->dropTable();
+//        $setup->dropTable();
         if (!$setup->tableExist()) {
             $this->install($setup, $context);
         }
