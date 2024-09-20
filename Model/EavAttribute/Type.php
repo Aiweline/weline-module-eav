@@ -58,7 +58,84 @@ class Type extends \Weline\Framework\Database\Model
      */
     public function upgrade(ModelSetup $setup, Context $context): void
     {
-        // TODO: Implement upgrade() method.
+        # 插入数据
+        $setup->alterTable()
+            ->addConstraints('engine=MyISAM default charset=utf8mb4;')
+            ->alterColumn(
+                self::fields_field_length,
+                self::fields_field_length,
+                self::fields_field_type,
+                TableInterface::column_type_BIGINT,
+                11,
+                'not null',
+                '数据库字段长度',
+            )->alter();
+        $this->insert([
+            [
+                self::fields_code => 'textarea_varchar',
+                self::fields_field_type => TableInterface::column_type_VARCHAR,
+                self::fields_frontend_attrs => 'type="text" data-parsley-minlength="3" required',
+                self::fields_field_length => 255,
+                self::fields_is_swatch => 0,
+                self::fields_swatch_image => 0,
+                self::fields_swatch_color => 0,
+                self::fields_swatch_text => 0,
+                self::fields_element => 'textarea',
+                self::fields_model_class => '',
+                self::fields_model_class_data => '',
+                self::fields_required => 1,
+                self::fields_default_value => '',
+                self::fields_name => '字符串输入',
+            ],
+            [
+                self::fields_code => 'textarea_text',
+                self::fields_field_type => TableInterface::column_type_TEXT,
+                self::fields_frontend_attrs => 'type="text" data-parsley-minlength="3" required',
+                self::fields_field_length => 0,
+                self::fields_is_swatch => 0,
+                self::fields_swatch_image => 0,
+                self::fields_swatch_color => 0,
+                self::fields_swatch_text => 0,
+                self::fields_element => 'textarea',
+                self::fields_model_class => '',
+                self::fields_model_class_data => '',
+                self::fields_required => 1,
+                self::fields_default_value => '',
+                self::fields_name => '字符串输入',
+            ],
+            [
+                self::fields_code => 'textarea_mediumtext',
+                self::fields_field_type => TableInterface::column_type_MEDIU_TEXT,
+                self::fields_frontend_attrs => 'type="text" data-parsley-minlength="3" required',
+                self::fields_field_length => 0,
+                self::fields_is_swatch => 0,
+                self::fields_swatch_image => 0,
+                self::fields_swatch_color => 0,
+                self::fields_swatch_text => 0,
+                self::fields_element => 'textarea',
+                self::fields_model_class => '',
+                self::fields_model_class_data => '',
+                self::fields_required => 1,
+                self::fields_default_value => '',
+                self::fields_name => '字符串输入',
+            ],
+            [
+                self::fields_code => 'textarea_longtext',
+                self::fields_field_type => TableInterface::column_type_LONG_TEXT,
+                self::fields_frontend_attrs => 'type="text" data-parsley-minlength="3" required',
+                self::fields_field_length => 0,
+                self::fields_is_swatch => 0,
+                self::fields_swatch_image => 0,
+                self::fields_swatch_color => 0,
+                self::fields_swatch_text => 0,
+                self::fields_element => 'textarea',
+                self::fields_model_class => '',
+                self::fields_model_class_data => '',
+                self::fields_required => 1,
+                self::fields_default_value => '',
+                self::fields_name => '字符串输入',
+            ]], self::fields_code)
+            ->fetch();
     }
 
     /**
@@ -169,8 +246,8 @@ class Type extends \Weline\Framework\Database\Model
                 )
                 ->addColumn(
                     self::fields_field_length,
-                    TableInterface::column_type_SMALLINT,
-                    5,
+                    TableInterface::column_type_INTEGER,
+                    11,
                     'not null',
                     '数据库字段长度'
                 )
@@ -246,7 +323,7 @@ class Type extends \Weline\Framework\Database\Model
                         self::fields_code => 'input_string_255',
                         self::fields_field_type => TableInterface::column_type_VARCHAR,
                         self::fields_frontend_attrs => 'type="text" maxlength="255" data-parsley-minlength="3" required',
-                        self::fields_field_length => 1,
+                        self::fields_field_length => 255,
                         self::fields_is_swatch => 0,
                         self::fields_swatch_image => 0,
                         self::fields_swatch_color => 0,
@@ -262,12 +339,76 @@ class Type extends \Weline\Framework\Database\Model
                         self::fields_code => 'input_string',
                         self::fields_field_type => TableInterface::column_type_VARCHAR,
                         self::fields_frontend_attrs => 'type="text" data-parsley-minlength="3" required',
-                        self::fields_field_length => 1,
+                        self::fields_field_length => 255,
                         self::fields_is_swatch => 0,
                         self::fields_swatch_image => 0,
                         self::fields_swatch_color => 0,
                         self::fields_swatch_text => 0,
                         self::fields_element => 'input',
+                        self::fields_model_class => '',
+                        self::fields_model_class_data => '',
+                        self::fields_required => 1,
+                        self::fields_default_value => '',
+                        self::fields_name => '字符串输入',
+                    ],
+                    [
+                        self::fields_code => 'textarea_varchar',
+                        self::fields_field_type => TableInterface::column_type_VARCHAR,
+                        self::fields_frontend_attrs => 'type="text" data-parsley-minlength="3" required',
+                        self::fields_field_length => 255,
+                        self::fields_is_swatch => 0,
+                        self::fields_swatch_image => 0,
+                        self::fields_swatch_color => 0,
+                        self::fields_swatch_text => 0,
+                        self::fields_element => 'textarea',
+                        self::fields_model_class => '',
+                        self::fields_model_class_data => '',
+                        self::fields_required => 1,
+                        self::fields_default_value => '',
+                        self::fields_name => '字符串输入',
+                    ],
+                    [
+                        self::fields_code => 'textarea_text',
+                        self::fields_field_type => TableInterface::column_type_TEXT,
+                        self::fields_frontend_attrs => 'type="text" data-parsley-minlength="3" required',
+                        self::fields_field_length => 0,
+                        self::fields_is_swatch => 0,
+                        self::fields_swatch_image => 0,
+                        self::fields_swatch_color => 0,
+                        self::fields_swatch_text => 0,
+                        self::fields_element => 'textarea',
+                        self::fields_model_class => '',
+                        self::fields_model_class_data => '',
+                        self::fields_required => 1,
+                        self::fields_default_value => '',
+                        self::fields_name => '字符串输入',
+                    ],
+                    [
+                        self::fields_code => 'textarea_mediumtext',
+                        self::fields_field_type => TableInterface::column_type_MEDIU_TEXT,
+                        self::fields_frontend_attrs => 'type="text" data-parsley-minlength="3" required',
+                        self::fields_field_length => 0,
+                        self::fields_is_swatch => 0,
+                        self::fields_swatch_image => 0,
+                        self::fields_swatch_color => 0,
+                        self::fields_swatch_text => 0,
+                        self::fields_element => 'textarea',
+                        self::fields_model_class => '',
+                        self::fields_model_class_data => '',
+                        self::fields_required => 1,
+                        self::fields_default_value => '',
+                        self::fields_name => '字符串输入',
+                    ],
+                    [
+                        self::fields_code => 'textarea_longtext',
+                        self::fields_field_type => TableInterface::column_type_LONG_TEXT,
+                        self::fields_frontend_attrs => 'type="text" data-parsley-minlength="3" required',
+                        self::fields_field_length => 0,
+                        self::fields_is_swatch => 0,
+                        self::fields_swatch_image => 0,
+                        self::fields_swatch_color => 0,
+                        self::fields_swatch_text => 0,
+                        self::fields_element => 'textarea',
                         self::fields_model_class => '',
                         self::fields_model_class_data => '',
                         self::fields_required => 1,
@@ -636,7 +777,7 @@ class Type extends \Weline\Framework\Database\Model
             $model = ObjectManager::getInstance($this->getModelClass());
             return $model->getHtml($attribute, $value, $label_class, $attrs, $option_items);
         } else {
-            $html = '';
+            $html    = '';
             $element = $this->getElement();
             switch ($element) {
                 case 'select':
@@ -684,7 +825,7 @@ class Type extends \Weline\Framework\Database\Model
         $id          = $this->getCode() . '_' . $attribute->getCode() . '_' . $this->getId();
         $attrsString = ' id="' . $id . '" data-name="' . $type->getCode() . '" code="' . $attribute->getCode() . '" ';
         foreach ($attrs as $k => $v) {
-            if(is_array($v)){
+            if (is_array($v)) {
                 $v = json_encode($v);
             }
             switch ($k) {
@@ -723,7 +864,7 @@ class Type extends \Weline\Framework\Database\Model
         $name          = __($attribute->getName());
         $typeCode      = $type->getCode();
         $attributeCode = $attribute->getCode();
-        $dependence = $attribute->getDependence()?'<br>'.__('依赖：').'<span class="text-info">'.$attribute->getDependence().'</span>':'';
+        $dependence    = $attribute->getDependence() ? '<br>' . __('依赖：') . '<span class="text-info">' . $attribute->getDependence() . '</span>' : '';
         $label         = <<<LABEL
 <label title="$attributeCode-$name" data-type-code="$typeCode" class="' . $label_class . '">$required $name <span class="text-primary">$attributeCode</span>$dependence</label>
 LABEL;
