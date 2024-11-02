@@ -67,7 +67,7 @@ class Option extends \Weline\Framework\Database\Model
                 ->addColumn(self::fields_swatch_color, TableInterface::column_type_VARCHAR, 60, '', '颜色')
                 ->addColumn(self::fields_swatch_text, TableInterface::column_type_VARCHAR, 128, '', '文本')
                 ->addIndex(TableInterface::index_type_KEY, 'EAV_ATTRIBUTE_ID', 'attribute_id')
-                ->addForeignKey('EAV_ATTRIBUTE_ID', 'attribute_id', ObjectManager::getInstance(EavAttribute::class)->getTable(), 'attribute_id', true)
+                ->addForeignKey('FK_EAV_ATTRIBUTE_ID', 'attribute_id', ObjectManager::getInstance(EavAttribute::class)->getTable(), 'attribute_id', true)
                 ->create();
         }
     }
