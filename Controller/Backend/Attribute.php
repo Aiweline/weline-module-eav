@@ -47,6 +47,18 @@ class Attribute extends \Weline\Framework\App\Controller\BackendController
 
     public function index()
     {
+        if($entity_code = $this->request->getGet('entity_code')){
+            /**
+             * @var \Weline\Eav\Model\EavEntity $entityModel
+             */
+            $entityModel = ObjectManager::getInstance(EavEntity::class);
+            $entityModel->loadByCode($entity_code);
+            if(!$entityModel->getId()){
+                throw new Core(__('实体不存在'));
+            }
+            $this->eavAttribute->where('main_table.eav_entity_id', $entityModel->getId());
+            $this->assign('entity', $entityModel);
+        }
         $this->eavAttribute->addLocalDescription()
             ->joinModel(EavEntity::class, 'entity', 'main_table.eav_entity_id=entity.eav_entity_id', 'left', 'entity.name as entity_name')
             ->joinModel(EavEntity\LocalDescription::class, 'entity_local', 'main_table.eav_entity_id=entity_local.eav_entity_id and entity_local.local_code=\'' . Cookie::getLangLocal() . '\'', 'left', 'entity_local.name as entity_local_name');
@@ -58,7 +70,7 @@ class Attribute extends \Weline\Framework\App\Controller\BackendController
             $this->eavAttribute->where('eav_entity_id', $entity);
         }
         // p($this->eavAttribute->select()->getLastSql());
-        $attributes = $this->eavAttribute->order('main_table.update_time')->pagination()->select()->fetchOrigin();
+        $attributes = $this->eavAttribute->order('main_table.update_time')->pagination()->select()->fetchArray();
         $this->assign('attributes', $attributes);
         $this->assign('pagination', $this->eavAttribute->getPagination());
         return $this->fetch();
@@ -113,7 +125,7 @@ class Attribute extends \Weline\Framework\App\Controller\BackendController
             $this->eavAttribute->where('concat(`attribute`,main_table.`name`,`entity`,`option`)', "%{$search}%", 'like');
             return $this->fetchJson($json);
         }
-        $attributes    = $this->eavAttribute->select()->fetchOrigin();
+        $attributes    = $this->eavAttribute->select()->fetchArray();
         $json['items'] = $attributes;
         return $this->fetchJson($json);
     }
@@ -135,12 +147,12 @@ class Attribute extends \Weline\Framework\App\Controller\BackendController
         }
         $this->assign('attribute', $attribute);
         # 实体
-        $entities = ObjectManager::getInstance(EavEntity::class)->select()->fetchOrigin();
+        $entities = ObjectManager::getInstance(EavEntity::class)->select()->fetchArray();
         $this->assign('entities', $entities);
         # 类型
         /**@var \Weline\Eav\Model\EavAttribute\Type $typeModel */
         $typeModel = ObjectManager::getInstance(EavAttribute\Type::class);
-        $types     = $typeModel->select()->fetchOrigin();
+        $types     = $typeModel->select()->fetchArray();
         $this->assign('types', $types);
         return $this->fetch('form');
     }
@@ -212,12 +224,12 @@ class Attribute extends \Weline\Framework\App\Controller\BackendController
         }
         $this->assign('attribute', $attribute);
         # 实体
-        $entities = ObjectManager::getInstance(EavEntity::class)->select()->fetchOrigin();
+        $entities = ObjectManager::getInstance(EavEntity::class)->select()->fetchArray();
         $this->assign('entities', $entities);
         # 类型
         /**@var \Weline\Eav\Model\EavAttribute\Type $typeModel */
         $typeModel = ObjectManager::getInstance(EavAttribute\Type::class);
-        $types     = $typeModel->select()->fetchOrigin();
+        $types     = $typeModel->select()->fetchArray();
         $this->assign('types', $types);
         return $this->fetch('form');
     }

@@ -78,7 +78,7 @@ class Group extends \Weline\Framework\App\Controller\BackendController
             return $this->fetchJson($json);
         }
         $attributes    = $this->group->select()
-            ->fetchOrigin();
+            ->fetchArray();
         $json['items'] = $attributes;
         return $this->fetchJson($json);
     }
@@ -182,7 +182,7 @@ class Group extends \Weline\Framework\App\Controller\BackendController
         // 实体
         /**@var \Weline\Eav\Model\EavEntity $eavEntityModel */
         $eavEntityModel = ObjectManager::getInstance(EavEntity::class);
-        $entities       = $eavEntityModel->select()->fetchOrigin();
+        $entities       = $eavEntityModel->select()->fetchArray();
         $this->assign('entities', $entities);
         // 链接
         $this->assign('action', $this->_url->getCurrentUrl());

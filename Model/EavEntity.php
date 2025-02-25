@@ -52,7 +52,7 @@ class EavEntity extends Model
         $moduleFileReader = ObjectManager::getInstance(ModuleFileReader::class);
 
         $modules = Env::getInstance()->getActiveModules();
-        $eavs    = [];
+        $eavs = [];
         foreach ($modules as $module) {
             $eavs = array_merge($eavs, $moduleFileReader->readClass(new Module($module), 'Model'));
         }
@@ -79,6 +79,34 @@ class EavEntity extends Model
                     )
                     ->forceCheck(true, $this::fields_code)
                     ->save();
+                # 检查属性集和属性组，没有则为实体创建默认属性集和默认属性组
+                #--属性集
+                $attributeSet = $eavEntity->getAttributeSets();
+                if (empty($attributeSet)) {
+                    /**@var \Weline\Eav\Model\EavAttribute\Set $eavAttributeSet */
+                    $eavAttributeSet = ObjectManager::make(EavAttribute\Set::class);
+                    $eavAttributeSet->reset()->clearData()
+                        ->insert([
+                            'eav_entity_id' => $eavEntity->getEavEntityId(),
+                            'name' => '默认属性集',
+                            'code' => 'default',
+                        ])->fetch();
+                }
+                # --属性组
+                $attributeGroup = $eavEntity->getAttributeGroups();
+                if (empty($attributeGroup)) {
+                    # 获取默认属性集
+                    $attributeSet = $eavEntity->getAttributeSet('default');
+                    /**@var \Weline\Eav\Model\EavAttribute\Group $eavAttributeGroup */
+                    $eavAttributeGroup = ObjectManager::make(EavAttribute\Group::class);
+                    $eavAttributeGroup->reset()->clearData()
+                        ->insert([
+                            'set_id' => $attributeSet->getId(),
+                            'eav_entity_id' => $eavEntity->getEavEntityId(),
+                            'name' => '默认属性组',
+                            'code' => 'default',
+                        ])->fetch();
+                }
             }
         }
     }
@@ -154,7 +182,7 @@ class EavEntity extends Model
     public function getAttribute(string $code)
     {
         /**@var \Weline\Eav\Model\EavAttribute $attributeModel */
-        $attributeModel = ObjectManager::getInstance(EavAttribute::class);
+        $attributeModel = ObjectManager::make(EavAttribute::class);
         $attributeModel->where(EavAttribute::fields_eav_entity_id, $this->getId())
             ->where(EavAttribute::fields_code, $code)
             ->find()
@@ -192,7 +220,7 @@ class EavEntity extends Model
         return $this->setData(self::fields_class, $class);
     }
 
-    public function isSystem(bool $is_system = null): bool|static
+    public function isSystem(bool $is_system = false): bool|static
     {
         if (is_bool($is_system)) {
             return $this->setData(self::fields_is_system, $is_system);
@@ -222,7 +250,7 @@ class EavEntity extends Model
 
     function addLocalDescription()
     {
-        $lang    = Cookie::getLang();
+        $lang = Cookie::getLang();
         $idField = $this::fields_ID;
         $this->joinModel(
             \Weline\Eav\Model\EavEntity\LocalDescription::class,

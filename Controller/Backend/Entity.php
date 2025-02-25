@@ -40,7 +40,7 @@ class Entity extends \Weline\Framework\App\Controller\BackendController
         if ($search = $this->request->getGet('search')) {
             $this->eavEntity->where('concat(main_table.code,main_table.name,main_table.class,local.name)', "%$search%", 'like');
         }
-        $entities = $this->eavEntity->pagination()->select()->fetchOrigin();
+        $entities = $this->eavEntity->pagination()->select()->fetchArray();
         $this->assign('entities', $entities);
         $this->assign('pagination', $this->eavEntity->getPagination());
         return $this->fetch();
@@ -51,6 +51,6 @@ class Entity extends \Weline\Framework\App\Controller\BackendController
         if ($search = $this->request->getGet('search')) {
             $this->eavEntity->where('concat(code,name,class)', "%$search%", 'like');
         }
-        return $this->fetchJson(['items' => $this->eavEntity->select()->fetchOrigin()]);
+        return $this->fetchJson(['items' => $this->eavEntity->select()->fetchArray()]);
     }
 }

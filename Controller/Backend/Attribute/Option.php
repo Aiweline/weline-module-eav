@@ -63,7 +63,7 @@ Option extends BackendController
             return $this->fetchJson($json);
         }
         $attributes    = $this->option->select()
-            ->fetchOrigin();
+            ->fetchArray();
         $json['items'] = $attributes;
         return $this->fetchJson($json);
     }

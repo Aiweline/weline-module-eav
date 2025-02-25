@@ -69,7 +69,7 @@ class Value extends \Weline\Framework\Database\Model
         /**@var \Weline\Eav\Model\EavAttribute\Type $type */
         $type = ObjectManager::getInstance(\Weline\Eav\Model\EavAttribute\Type::class);
 
-        $types    = $type->reset()->select()->fetch()->getItems();
+        $types    = $type->select()->fetch()->getItems();
         $entities = $entity->clear()->select()->fetch()->getItems();
         /**@var EavEntity $entity */
         foreach ($entities as $entity) {

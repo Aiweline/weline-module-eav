@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 namespace Weline\Eav\Controller\Backend\Attribute;
 
-use Gvanda\Store\Model\Store;
 use Weline\Eav\Model\EavEntity;
 use Weline\Framework\Http\Cookie;
 use Weline\Framework\Manager\ObjectManager;
@@ -138,7 +137,7 @@ class Set extends \Weline\Framework\App\Controller\BackendController
         }
         $sets          = $this->set->where('eav_entity_id', $eav_entity_id)
                                    ->select()
-                                   ->fetchOrigin();
+                                   ->fetchArray();
         $json['items'] = $sets;
         return $this->fetchJson($json);
     }
@@ -157,7 +156,7 @@ class Set extends \Weline\Framework\App\Controller\BackendController
             $this->set->where('concat(name,code) like \'%' . $search . '%\'');
         }
         $sets          = $this->set->select()
-                                   ->fetchOrigin();
+                                   ->fetchArray();
         $json['items'] = $sets;
         return $this->fetchJson($json);
     }
@@ -186,7 +185,7 @@ class Set extends \Weline\Framework\App\Controller\BackendController
         // 实体
         /**@var \Weline\Eav\Model\EavEntity $eavEntityModel */
         $eavEntityModel = ObjectManager::getInstance(EavEntity::class);
-        $entities       = $eavEntityModel->reset()->select()->fetchOrigin();
+        $entities       = $eavEntityModel->reset()->select()->fetchArray();
         $this->assign('entities', $entities);
         // 链接
         $this->assign('action', $this->_url->getCurrentUrl());
